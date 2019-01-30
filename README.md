@@ -7,6 +7,7 @@
 * Negative and odd
 
 Sample Output:
-```   Enter an integer: 4
+```
+Enter an integer: 4
    4 is positive and even
 ```

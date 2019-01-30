@@ -1,4 +1,4 @@
-# C
+# C [![Build Status](https://travis-ci.com/rdwinter2/C.svg?branch=master)](https://travis-ci.com/rdwinter2/C)
 
 1. Write a program that prompts the user for an integer number. Then determine whether the number is
 * Positive and even

@@ -1,3 +1,5 @@
+all: one two three four
+
 make1: one.c
 	gcc -o one one.c -I.
 

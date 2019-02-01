@@ -1,0 +1,3028 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0053)https://invisible-island.net/personal/lint-tools.html -->
+<html class="gr__invisible-island_net"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <title>Lint Tools - checking C/C++ programs</title>
+  <meta name="generator" content="HTML Tidy for Linux (vers 25 March 2009), see www.w3.org">
+  <link rev="MADE" href="mailto:dickey@invisible-island.net">
+  
+  <link rel="SHORTCUT ICON" href="https://invisible-island.net/img/icons/vile.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./Lint Tools - checking C_C++ programs_files/simplestyle.css" type="text/css">
+  <link rel="stylesheet" href="./Lint Tools - checking C_C++ programs_files/inline-code.css" type="text/css">
+  <style type="text/css">
+@import "/css/simplenavXX.css" all;
+  </style>
+</head>
+
+<body data-gr-c-s-loaded="true">
+  <hr>
+
+  <p><a href="https://invisible-island.net/">http://invisible-island.net/</a><a href="https://invisible-island.net/personal/resume.html">personal/</a><br>
+  Copyright © 2015-2017,2018 by Thomas E. Dickey</p>
+
+  <h1 class="no-header">Lint Tools – checking C/C++
+  programs</h1>
+
+  <p>As a software developer, I use many tools. Here are some
+  comments about some of the <em>analysis</em> tools which I have
+  encountered.</p>
+
+  <div class="nav">
+    <ul>
+      <li class="nav-top"><a href="https://invisible-island.net/personal/lint-tools.html">(top)</a></li>
+
+      <li><a href="https://invisible-island.net/personal/lint-tools.html#background">Background</a></li>
+
+      <li>
+        <a href="https://invisible-island.net/personal/lint-tools.html#tools_static">Static Tools</a>
+
+        <ul>
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_lint">lint</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_gcc">gcc</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_coverity">coverity</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_clang">clang</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_cppcheck">cppcheck</a></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="https://invisible-island.net/personal/lint-tools.html#tools_dynamic">Dynamic Tools</a>
+
+        <ul>
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_doalloc">doalloc</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_dbmalloc">dbmalloc/dmalloc</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_atac">atac</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_purify">purify</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_gprof">prof/gprof</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_gcov">gcov</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_valgrind">valgrind</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#tool_lcov">lcov</a></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="https://invisible-island.net/personal/lint-tools.html#coding_process">Process</a>
+
+        <ul>
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_ansification">ANSIfication</a></li>
+
+          <li>
+            <a href="https://invisible-island.net/personal/lint-tools.html#proc_cleanup">Code Cleanup</a>
+
+            <ul>
+              <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_cleanup_ncurses">ncurses...</a></li>
+
+              <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_cleanup_vile">vile...</a></li>
+
+              <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_cleanup_lynx">lynx...</a></li>
+
+              <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_cleanup_lexyacc">lex/yacc...</a></li>
+            </ul>
+          </li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_builds">Routine Builds</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#proc_packaging">Packaging</a></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="https://invisible-island.net/personal/lint-tools.html#problems">Problems</a>
+
+        <ul>
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#problem_work">at work...</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#problem_gcc">gcc</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#problem_mawk">mawk</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#problem_purify">purify</a></li>
+
+          <li><a href="https://invisible-island.net/personal/lint-tools.html#problem_snprintf">snprintf</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <hr>
+
+  <h2><a name="background" id="background">Background</a></h2>
+
+  <p><a href="https://invisible-island.net/personal/oldprogs.html#y1970">When I began programming</a>,
+  there were no static (or dynamic) analyzers, no profilers, no
+  debuggers. There was only a compiler (initially in <em>two</em>
+  parts: a precompiler and a compiler). In lieu of a debugger, the
+  IBM 1620 conveniently responded to use of an uninitialized
+  variable by going into an infinite loop. There were no compiler
+  <em>warnings</em> (only <em>errors</em>). This was in
+  <span style="font-variant:small-caps">fortran</span>, of
+  course.</p>
+
+  <p>A little later, as a graduate student, I used the <span style="font-variant:small-caps">watfiv</span> (<span style="font-variant:small-caps">fortran</span>) compiler, which had
+  better diagnostics (many more error messages, still no warnings).
+  There were other languages than <span style="font-variant:small-caps">fortran</span>; I encountered a
+  computer science student who said he was programming in SAIL, and
+  that because of this, his program was automatically
+  well-structured and well-formatted.</p>
+
+  <p>Perhaps. I encountered people in 1990 who said the same about
+  Ada.</p>
+
+  <p>But my initial exposure to compilers was that they produced
+  error messages, rather than warnings. The first case where I
+  recall discussing compiler <em>warnings</em> was a few years
+  later regarding Univac's “ASCII FORTRAN” (Fortran
+  77). I showed Henry Bowlden a program where I complained that the
+  compiler had not treated a <code>goto</code> into an
+  <code>if</code>-<code>then</code>-<code>else</code> construct as
+  an error—or at least <em>warned</em> about it. By then,
+  compilers had evolved to</p>
+
+  <ul>
+    <li>
+      <p>provide useful <em>warnings</em> or advice on ways to
+      improve the program, e.g., to make the optimizer's job
+      easier.</p>
+    </li>
+
+    <li>
+      <p>provide multiple diagnostics for a program (rather than
+      simply give up on the first error, or worse, compound one
+      problem into multiple error messages)</p>
+    </li>
+  </ul>
+
+  <p>Later languages and tools introduced type-checking. Besides
+  making the resulting programs more reliable, it made the
+  languages easier to learn. Here are a couple of examples from the
+  early 1980s:</p>
+
+  <ul>
+    <li>
+      <p>Even assembly languages were affected. For instance, the
+      1970s DEC assemblers used a special syntax for register names
+      (with a percent-sign as part of their definition), and would
+      produce an error if an untyped digit were used where a
+      register was expected. By comparison, IBM assembler (dating
+      from the 1960s) did not make this distinction, and was harder
+      to learn — <a href="https://invisible-island.net/personal/oldprogs.html#ibmdis">in
+      1982</a>.</p>
+    </li>
+
+    <li>
+      <p>VMS C 1.0, which I used in 1983 to develop a <a href="https://invisible-island.net/personal/oldprogs.html#spasm">meta-assembler</a>, had poor
+      diagnostics. It would "do the right thing" if the
+      <code>&amp;</code> symbol were omitted where an address was
+      needed. Again, that made it harder to learn than using VMS C
+      2.0, which <em>had</em> diagnostics.</p>
+    </li>
+  </ul>
+
+  <p>Things went along in this way for some time, with newer
+  compilers providing better (more <em>specific</em>)
+  diagnostics.</p>
+
+  <p>In contrast to compiler diagnostics (static analysis), the
+  means for <em>testing</em> programs lagged:</p>
+
+  <ul>
+    <li>
+      <p>In 1979, I thought I would improve the performance of my
+      <a href="https://invisible-island.net/personal/oldprogs.html#y1975">macro assembler</a> by changing
+      the way it translated to/from radix-50 (three characters in
+      16 bits). Finding that the program did not get faster, I
+      wrote a (crude) profiler to see where it was spending time.
+      It was spending 90% of the time in the operating system.
+      About a year later, using the program on a lab computer with
+      floppy disks, I found the answer: the buffer size used for
+      disk reads was too small.</p>
+    </li>
+
+    <li>
+      <p>In 1985, I added command record/playback to <a href="https://invisible-island.net/personal/paperstuff.html#t1984">HCAB</a> (the CAD program which I was
+      developing), to ensure that I could reproduce error
+      conditions. This was more successful, making it easy to
+      isolate problems in the code by replaying over and over
+      again.</p>
+
+      <p>I did the same in my directory editor <a href="https://invisible-island.net/ded/ded.html">ded</a>, in <a href="https://invisible-island.net/ded/ded/CHANGES.html#t19920811_u1">August 1992</a>, and in
+      <a href="https://lynx.invisible-island.net/">lynx</a> in
+      <a href="https://lynx.invisible-island.net/current/CHANGES.html#v2.8.4dev.4">
+      June 2000</a>.</p>
+    </li>
+  </ul>
+
+  <h2><a name="tools_static" id="tools_static">Static
+  Tools</a></h2>
+
+  <p>Instrumenting programs to make them testable or to measure
+  their performance takes time and requires running the programs in
+  controlled conditions. But compilers give warnings for free, same
+  result every time.</p>
+
+  <p>There is no sure-fire technique for improving programs by
+  static analysis. Rather, there are a variety of techniques which
+  can be learned, based on various tools. All of these evolve over
+  time.</p>
+
+  <h3><a name="tool_lint" id="tool_lint">lint</a></h3>
+
+  <p>I started using <code>lint</code> in 1986, continuing into the
+  late 1990s. Initially it “just worked” and became the
+  first thing I would do when I found that new changes to a program
+  broke it. <code>lint</code> would usually find the problem.</p>
+
+  <p>By itself, <code>lint</code> could only go so far. It came
+  with lint libraries telling the program about the interface of
+  the C runtime (before C was standardized). But if I used a C
+  library not known to <code>lint</code>, it was less useful.</p>
+
+  <p>I learned to make lint libraries. Initially (in 1991 or 1992)
+  I did these by hand, converting header files (with comments for
+  the parameter names) into the quasi-prototype form used by
+  <code>lint</code>. The header files for X libraries were large,
+  taking a lot of time.</p>
+
+  <p>I noticed <a href="https://invisible-island.net/cproto/cproto.html">cproto</a> early in
+  1993, and sent Chin Huang my changes to allow it to generate lint
+  library sources. Having those, I could compile the sources and
+  get usable lint libraries. This set of changes appeared in
+  <a href="https://invisible-island.net/cproto/CHANGES.html#t19930609">June 1993</a>. I made
+  further changes (including making the <a href="https://invisible-island.net/cproto/CHANGES.html#t19940831">enhanced error reporting</a>
+  which works with the different types of <code>yacc</code>), and
+  worked with Chin Huang off and on for the next few years.</p>
+
+  <p>I used this feature in <a href="https://invisible-island.net/ncurses/ncurses.html">ncurses</a> (<a href="https://invisible-island.net/ncurses/NEWS.html#t960601">June 1996</a>) to generate lint
+  library sources for the four component libraries (ncurses, form,
+  menu and panel). However (unlike SunOS), Solaris support for
+  <code>lint</code> was poor. Sun delivered stubs for the lint
+  libraries and its tools were not capable of producing usable lint
+  libraries. I used other platforms for <code>lint</code>, as long
+  as those were available. Judging by my email, by around 2000
+  <code>lint</code> was gone.</p>
+
+  <p>Even after the tool itself was no longer useful, I kept the
+  lint library text in ncurses because it is useful as a
+  documentation aid. Updating the files was not completely
+  automatic, e.g., changing <code>attr_t</code> to <code>int</code>
+  to match the prototypes for the legacy attribute manipulation,
+  and of course adding the copyright notice. Finally, in 2015 I
+  wrote a script <code>make-ncurses-llibs</code> to generate the
+  sources without requiring manual editing, and used that in
+  preparing the ncurses6 release.</p>
+
+  <h3><a name="tool_gcc" id="tool_gcc">gcc</a></h3>
+
+  <p>As an alternative to <code>lint</code>, <code>gcc</code> has
+  some advantages and some disadvantages. The main disadvantage is
+  that it has no way to detect that a function is not used in any
+  of the various modules that comprise a program.</p>
+
+  <p>While I preferred <code>lint</code>, I found the compiler
+  warnings from <code>gcc</code> useful. For instance, in a posting
+  to <em>comp.os.linux.misc</em> in September 1995, I remarked</p>
+
+  <blockquote>
+    <pre class="code-block">From dickey Wed Sep  6 07:50:15 1995
+Subject: Re: Lint for Linux?
+Newsgroups: comp.os.linux.misc
+References: &lt;42ia4f$9k2@sifon.cc.mcgill.ca&gt; &lt;42iir4$81a@solaria.cc.gatech.edu&gt;
+Organization: Clark Internet Services, Inc., Ellicott City, MD USA
+Distribution:
+Lines: 28
+X-Newsreader: TIN [UNIX 1.3 950824BETA PL0]
+
+Byron A Jeff (byron@cc.gatech.edu) wrote:
+: In article &lt;42ia4f$9k2@sifon.cc.mcgill.ca&gt;,
+: Marc BRANCHAUD &lt;marcnarc@cs.mcgill.ca&gt; wrote:
+: &gt;
+: &gt;Hi, all...
+: &gt;
+: &gt;I'm trying to find a copy of lint to use with Linux.  I've scoured
+: &gt;sunsite and a few other places, and I can't find one at all.  Does it
+: &gt;even exist?
+:
+: I'll give the standard party line:
+:
+: gcc -Wall
+:
+: will give you about the same level of warning messages as lint.
+Actually, no. There's a number of checks that lint does that gcc doesn't
+(read the gcc internal to-do list stuff).
+
+When I don't have lint, I use
+
+gcc -Wall -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion
+
+(though -Wconversion has been butchered in the last release, so it's
+really only useful with gcc 2.5.8)
+
+--
+Thomas E. Dickey
+dickey@clark.net
+</pre>
+  </blockquote>
+
+  <p>I used those options in a wrapper script, <a href="https://invisible-island.net/scripts/readme.html#item:gcc-normal"><code>gcc-normal</code></a>.
+  I also used an improved set of options in a wrapper script,
+  <a href="https://invisible-island.net/scripts/readme.html#item:gcc-strict"><code>gcc-strict</code></a>,
+  from a posting by Fergus Henderson. I created both of these
+  scripts in April 1995. The former has grown a little since then,
+  to allow it to ignore warnings from OSX and Solaris header files.
+  Originally it was just this:</p>
+
+  <blockquote>
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <font color="#800000">#!/bin/sh</font><br>
+    <font color="#800000">#&nbsp;these&nbsp;are&nbsp;my&nbsp;normal&nbsp;development-options</font><br>
+
+    <font color="#008080">OPTS</font>=<font color="#800080">"-Wall&nbsp;-Wstrict-prototypes&nbsp;-Wmissing-prototypes&nbsp;-Wshadow&nbsp;-Wconversion"</font><br>
+
+    gcc&nbsp;<font color="#008080">$OPTS</font>&nbsp;<font color="#800080">"$@"</font><br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>With a configure script, those scripts can override the
+  default compiler, e.g.,</p>
+
+  <blockquote>
+    <pre class="code-block">CC=gcc-normal ./configure
+./configure CC=gcc-normal
+</pre>
+  </blockquote>
+
+  <p>There were other compilers, of course. The best warnings came
+  from DEC's compiler for OSF/1 (later Tru64). On other platforms,
+  <code>lint</code> was where checking occurred, so the compilers
+  were neglected.</p>
+
+  <p>However, <code>gcc</code> was available for most of the
+  platforms on which I was developing.</p>
+
+  <p>A wrapper script worked well enough, except when defining
+  quoted values on the command-line. To work around that, I
+  incorporated a <code>--with-warnings</code> or
+  <code>--enable-warnings</code> option into my configure scripts.
+  Until <a href="https://invisible-island.net/autoconf/my-autoconf/CHANGES.html#t19970828">August 1997</a>, I
+  maintained those within the separate programs'
+  <code>aclocal.m4</code> files, before combining them into an
+  archive using <a href="https://invisible-island.net/misc_tools/index.html#item:acsplit"><code>acsplit</code></a>
+  and <a href="https://invisible-island.net/misc_tools/index.html#item:acmerge"><code>acmerge</code></a>.
+  Initially I just added checks for the available warnings, and
+  later (<a href="https://invisible-island.net/autoconf/my-autoconf/CHANGES.html#t20020719">in
+  2002</a>) added macros to the archive for the options
+  themselves.</p>
+
+  <p>Besides <em>enabling</em> warnings, my checks also tested for
+  gcc support for features which were based on lint. You may have
+  seen this chunk in <code>curses.h</code>:</p>
+
+  <blockquote>
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;" class="code-block"><span class="comment">/*<br></span>&nbsp;<span class="comment">*&nbsp;GCC&nbsp;(and&nbsp;some&nbsp;other&nbsp;compilers)&nbsp;define&nbsp;'__attribute__';&nbsp;we're&nbsp;using&nbsp;this<br>
+    </span> &nbsp;<span class="comment">*&nbsp;macro&nbsp;to&nbsp;alert&nbsp;the&nbsp;compiler&nbsp;to&nbsp;flag&nbsp;inconsistencies&nbsp;in&nbsp;printf/scanf-like<br>
+    </span> &nbsp;<span class="comment">*&nbsp;function&nbsp;calls.&nbsp;&nbsp;Just&nbsp;in&nbsp;case&nbsp;'__attribute__'&nbsp;isn't&nbsp;defined,&nbsp;make&nbsp;a&nbsp;dummy.<br>
+    </span> &nbsp;<span class="comment">*&nbsp;Old&nbsp;versions&nbsp;of&nbsp;G++&nbsp;do&nbsp;not&nbsp;accept&nbsp;it&nbsp;anyway,&nbsp;at&nbsp;least&nbsp;not&nbsp;consistently&nbsp;with<br>
+    </span> &nbsp;<span class="comment">*&nbsp;GCC.<br></span>&nbsp;<span class="comment">*/</span><br>
+    <span class="preproc">#if</span>&nbsp;!(<span class="preproc">defined</span>(__GNUC__)&nbsp;||&nbsp;<span class="preproc">defined</span>(__GNUG__)&nbsp;||&nbsp;<span class="preproc">defined</span>(__attribute__))<br>
+    <span class="preproc">#define</span>&nbsp;__attribute__(p)&nbsp;<span class="comment">/*&nbsp;nothing&nbsp;*/</span><br>
+
+    <span class="preproc">#endif</span><br>
+    &nbsp;<br>
+    <span class="comment">/*<br></span>&nbsp;<span class="comment">*&nbsp;We&nbsp;cannot&nbsp;define&nbsp;these&nbsp;in&nbsp;ncurses_cfg.h,&nbsp;since&nbsp;they&nbsp;require&nbsp;parameters&nbsp;to&nbsp;be<br>
+    </span> &nbsp;<span class="comment">*&nbsp;passed&nbsp;(that&nbsp;is&nbsp;non-portable).&nbsp;&nbsp;If&nbsp;you&nbsp;happen&nbsp;to&nbsp;be&nbsp;using&nbsp;gcc&nbsp;with&nbsp;warnings<br>
+    </span> &nbsp;<span class="comment">*&nbsp;enabled,&nbsp;define<br></span>&nbsp;<span class="comment">*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GCC_PRINTF<br>
+    </span> &nbsp;<span class="comment">*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GCC_SCANF<br></span>&nbsp;<span class="comment">*&nbsp;to&nbsp;improve&nbsp;checking&nbsp;of&nbsp;calls&nbsp;to&nbsp;printw(),&nbsp;etc.<br>
+    </span> &nbsp;<span class="comment">*/</span><br>
+    <span class="preproc">#ifndef</span>&nbsp;GCC_PRINTFLIKE<br>
+    <span class="preproc">#if</span>&nbsp;<span class="preproc">defined</span>(GCC_PRINTF)&nbsp;&amp;&amp;&nbsp;!<span class="preproc">defined</span>(printf)<br>
+
+    <span class="preproc">#define</span>&nbsp;GCC_PRINTFLIKE(fmt,var)&nbsp;__attribute__((format(printf,fmt,var)))<br>
+
+    <span class="preproc">#else</span><br>
+    <span class="preproc">#define</span>&nbsp;GCC_PRINTFLIKE(fmt,var)&nbsp;<span class="comment">/*nothing*/</span><br>
+
+    <span class="preproc">#endif</span><br>
+    <span class="preproc">#endif</span><br>
+    &nbsp;<br>
+    <span class="preproc">#ifndef</span>&nbsp;GCC_SCANFLIKE<br>
+    <span class="preproc">#if</span>&nbsp;<span class="preproc">defined</span>(GCC_SCANF)&nbsp;&amp;&amp;&nbsp;!<span class="preproc">defined</span>(scanf)<br>
+
+    <span class="preproc">#define</span>&nbsp;GCC_SCANFLIKE(fmt,var)&nbsp;&nbsp;__attribute__((format(scanf,fmt,var)))<br>
+
+    <span class="preproc">#else</span><br>
+    <span class="preproc">#define</span>&nbsp;GCC_SCANFLIKE(fmt,var)&nbsp;&nbsp;<span class="comment">/*nothing*/</span><br>
+
+    <span class="preproc">#endif</span><br>
+    <span class="preproc">#endif</span><br>
+    &nbsp;<br>
+    <span class="preproc">#ifndef</span>&nbsp;GCC_NORETURN<br>
+    <span class="preproc">#define</span>&nbsp;GCC_NORETURN&nbsp;<span class="comment">/*&nbsp;nothing&nbsp;*/</span><br>
+    <span class="preproc">#endif</span><br>
+    &nbsp;<br>
+    <span class="preproc">#ifndef</span>&nbsp;GCC_UNUSED<br>
+    <span class="preproc">#define</span>&nbsp;GCC_UNUSED&nbsp;<span class="comment">/*&nbsp;nothing&nbsp;*/</span><br>
+    <span class="preproc">#endif</span><br>
+    &nbsp;<br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>I added that to ncurses in <a href="https://invisible-island.net/ncurses/NEWS.html#t960706">July 1996</a> to get checking
+  comparable to these <a href="https://www.freebsd.org/cgi/man.cgi?query=lint&amp;sektion=1">lint
+  features</a>:</p>
+
+  <blockquote>
+    <pre class="code-block">/* PRINTFLIKE<em>n</em> */
+        makes <strong>lint</strong> check the first (<em>n</em>-1) arguments as usual.  The <em>n</em>-th
+        argument is interpreted as a <strong>printf(3)</strong> format string that is used
+        to check the remaining arguments.
+
+/* SCANFLIKE<em>n</em> */
+        makes <strong>lint</strong> check the first (<em>n</em>-1) arguments as usual.  The <em>n</em>-th
+        argument is interpreted as a <strong>scanf(3)</strong> format string that is used
+        to check the remaining arguments.
+
+/* NOTREACHED */
+        At appropriate points, inhibit complaints about unreachable code.
+        (This comment is typically placed just after calls to functions
+        like <strong>exit(3)</strong>).
+
+/* ARGSUSED<em>n</em> */
+        Makes <strong>lint</strong> check only the first <em>n</em> arguments for usage; a missing
+        <em>n</em> is taken to be 0 (this option acts like the <strong>-v</strong> option for the
+        next function).
+</pre>
+  </blockquote>
+
+  <p><code>lint</code> uses comments, gcc provides attributes but
+  some compilers may provide <code>__attribute__</code> as a macro,
+  some as a built-in symbol. When I started writing these configure
+  scripts:</p>
+
+  <ul>
+    <li>The attribute feature of gcc was new, part of 2.7.1 which
+    had been released a little over 6 months before.</li>
+
+    <li>The initial documentation stated that not all features were
+    supported.</li>
+
+    <li>Some existing compilers used the <code>__attribute__</code>
+    symbol as a macro (using <code>#define</code>), while gcc made
+    it a built-in.</li>
+  </ul>
+
+  <p>Taking that into account, I made macros which would not rely
+  on the macro/symbol difference, and wrote configure checks to
+  ensure that the corresponding attributes were supported. Looking
+  at the source-code for 2.7.2.3, released in July 1997, it seems
+  that gcc by then supported each attribute that I used. But the
+  configure checks are still used.</p>
+
+  <p>Still later (<a href="https://invisible-island.net/autoconf/my-autoconf/CHANGES.html#t20041203">2004</a> and
+  <a href="https://invisible-island.net/autoconf/my-autoconf/CHANGES.html#t20120616">2012</a>),
+  the Intel and clang compilers provided useful (and
+  <em>different</em>) warnings. I added checks for these under the
+  existing warning options. Although both try to imitate gcc, using
+  the compiler-specific options gives better results, since neither
+  imitates all of the options which I <em>use</em>.</p>
+
+  <h3><a name="tool_coverity" id="tool_coverity">coverity</a></h3>
+
+  <p>I investigated <a href="http://www.cs.virginia.edu/~evans/fse94.pdf">lclint</a> (later
+  renamed to <a href="http://www.splint.org/">splint</a>) in 1995,
+  but found it too cumbersome and fragile to use because it could
+  not handle the regular header files.</p>
+
+  <p>But <a href="https://scan.coverity.com/users/sign_in">Coverity</a> is a
+  useful product. It follows a program through several plausible
+  steps using the conditional checks to infer critical values of
+  variables, to look for inconsistencies. Most of the reports are
+  valid, i.e., about 90%. It will occasionally find serious
+  problems with a program. Like <code>lint</code>, the only way to
+  find those is to fix the minor issues along the way.</p>
+
+  <p>My email first mentions it used by FreeBSD in August 2004.
+  Largely due to promotional efforts by the Coverity people, I grew
+  interested enough to ask to have my project scanned in April
+  2006. A year later, <a href="https://invisible-island.net/dialog/CHANGES.html#t20070409">dialog</a> and <a href="https://invisible-island.net/ncurses/NEWS.html#t20070407">ncurses</a> were accepted for
+  scanning, and I made several fixes using its reports.</p>
+
+  <p>The initial workflow for this tool was based on releases,
+  which does not mesh well with my development process. Coverity
+  was more or less forgotten for a few years until they streamlined
+  the submission procedure, and I got involved again in 2012. Along
+  with streamlining things, they made it simpler to submit projects
+  for scanning, and I added several of the programs which I
+  maintain.</p>
+
+  <h3><a name="tool_clang" id="tool_clang">clang</a></h3>
+
+  <p>I have been using clang for both its compiler warnings and the
+  static analysis feature since May 2010.</p>
+
+  <p>Clang provides useful checks also, but has some shortcomings
+  relative to Coverity:</p>
+
+  <ul>
+    <li>its compiler warnings and static analysis consider only one
+    source file at a time, and</li>
+
+    <li>its inference of critical values is more easily misled,
+    producing more false positives.</li>
+  </ul>
+
+  <p>On the other hand, it runs <em>on</em> my machines, and can be
+  run many times without running into resource limits.</p>
+
+  <p>The FreeBSD developers have replaced gcc with it (except for
+  ports). Clang's developers have made it quasi-compatible with
+  gcc, i.e., it is not only able to handle the non-standard headers
+  but also most of the command-line options. That introduces
+  problems with configure scripts because clang does not return
+  error status for unrecognized options, even in many cases where
+  the option directs gcc to report an error.</p>
+
+  <p>However, not all is well with Clang:</p>
+
+  <ul>
+    <li>
+      <p>On OSX, this quasi-compatibility is aggravated by Apple's
+      decision to make a copy of clang installed as
+      <strong><code>/usr/bin/gcc</code></strong>.</p>
+    </li>
+
+    <li>
+      <p>Interesting enough, the wrappers for
+      <strong><code>c89</code></strong> and
+      <strong><code>c99</code></strong> on OSX are less usable than
+      those provided by other platforms, although Clang's version
+      number is generally higher (e.g., 9.x versus 4.x), because
+      those do not accept the standard command-line options.</p>
+    </li>
+
+    <li>
+      <p>Beyond that, none of Clang's
+      <strong><code>c99</code></strong> wrappers are useful anyway,
+      because it emits warnings for <em>offsetof</em> for structure
+      members.</p>
+    </li>
+  </ul>
+
+  <p>For example, with MacOS 10.13.2, I get these results from
+  test-builds of xterm:</p>
+
+  <ul>
+    <li>does not build with <strong><code>c89</code></strong>
+    (clang)</li>
+
+    <li>2557 lines building with (real)
+    <strong><code>gcc</code></strong> 6.4.0</li>
+
+    <li>2673 lines building with
+    <strong><code>clang</code></strong> 9.0.0</li>
+
+    <li>36589 lines building with <strong><code>c99</code></strong>
+    (clang)</li>
+  </ul>
+
+  <p>The difference between 2557 and 2673 is due to a type-error in
+  XQuartz's header file <code>/usr/X11/include/X11/Xpoll.h</code>
+  which has been present for many years. The <em>offsetof</em>
+  issue has been reported (see <a href="http://lists.llvm.org/pipermail/llvm-bugs/2017-April/054680.html">
+  <em>[llvm-bugs] [Bug 10065] Bogus pedantic warning when using
+  offsetof(type, field[n])</em></a>) and (as of the end of 2017),
+  ignored.</p>
+
+  <p>Coming back to this a year later, the bug-database entry for
+  <a href="https://bugs.llvm.org/show_bug.cgi?id=10065">10065</a>
+  is unchanged. However, a test-build with clang 10.0.0 on MacOS no
+  longer displays that defect. The build log shrank by 95%.</p>
+
+  <h3><a name="tool_cppcheck" id="tool_cppcheck">cppcheck</a></h3>
+
+  <p>The <code>cppcheck</code> project started early in 2009; I
+  first noticed reports for it late in 2009. As I noted on the
+  <a href="https://lists.x.org/archives/xorg-devel/2009-October/002435.html">
+  xorg mailing list</a> (after reading the cppcheck
+  source-code):</p>
+
+  <blockquote>
+    <pre class="code-block">On Sat, 3 Oct 2009, Martin Ettl wrote:
+
+&gt; Hello friends,
+&gt;
+&gt; further analysation with the static code analysis tool cppcheck brought up another issue. The tool printed the following warning:
+&gt;
+&gt; .../xfree86/common/xf86AutoConfig.c,337,possible error,Dangerous usage of strncat. Tip: the 3rd parameter means maximum number of characters to append
+&gt;
+&gt; Take a look into the code at line 337:
+&gt; .....
+&gt; char path_name[256];
+&gt; .....
+&gt; 334        if (strncmp(&amp;(direntry-&gt;d_name[len-4]), ".ids", 4) == 0) {
+&gt;            /* We need the full path name to open the file */
+&gt;            strncpy(path_name, PCI_TXT_IDS_PATH, 256);
+&gt; 337         strncat(path_name, "/", 1);
+&gt;            strncat(path_name, direntry-&gt;d_name, (256 - strlen(path_name) - 1));
+&gt; .....
+&gt;
+&gt; I is possible (suppose to be the string PCI_TXT_IDS_PATH) is 256
+&gt; characters long) that the array path_name is allready filled. Then (lin
+&gt; 337) an additional character is appended --&gt; array index might be go out
+&gt; of range.
+
+It's possible, but cppcheck isn't that smart.
+It's "only" warning that its author disapproves of strncat.
+cppcheck only notes its presence in the code, makes no analysis of the
+parameters.  It's a _checking_ tool, by the way, not to be confused with
+static analysis.
+
+(dynamic allocation as an alternative is not necessarily an improvement)
+</pre>
+  </blockquote>
+
+  <p>According to the <a href="https://www.openhub.net/p/cppcheck">project metrics</a>, it has
+  grown by a factor of six since I first saw it in 2009. The checks
+  have been improved (reducing the false positives) and checks
+  added. But essentially it is still a <em>style</em> checker. A
+  <em>static analyzer</em> is expected to go beyond that, doing
+  analysis of the data flows—more than the diagnostics
+  emitted by an optimizing compiler pointing out unused or
+  uninitialized variables do.</p>
+
+  <p>I pointed this out <a href="http://stackoverflow.com/a/31401117/4518274">in 2015</a>:</p>
+
+  <blockquote class="code-block">
+    <p>cppcheck is essentially only a style-checker (and like other
+    tools which incorporate the developer's notion of "good style",
+    its usefulness depends on various factors).</p>
+
+    <p>There are suitable tools for detecting memory leaks (such as
+    <a href="http://valgrind.org/">valgrind</a>); cppcheck is not
+    one of those. Of course, you will find differing opinions on
+    which are the best tools, and even on what a tool is suitable
+    for, e.g., a blog entry <em><a href="http://maintainablecode.logdown.com/posts/245425-valgrind-is-not-a-leak-checker">
+    *Valgrind is NOT a leak checker *</a></em></p>
+  </blockquote>
+
+  <p>Daniel Marjamäki, a cppcheck developer, did not disagree
+  with my comment in <a href="http://stackoverflow.com/a/31405030/4518274">his response</a>.
+  At the time that I wrote those comments, I was at that moment
+  mulling over a Coverity report regarding an incorrect
+  sign-extension check in xterm ResizeScreen for <a href="https://invisible-island.net/xterm/xterm.log.html#xterm_319">patch #319</a>.</p>
+
+  <p>On the other hand, I have found the tool useful. David
+  Binderman reported some warnings from cppcheck 1.73 which I used
+  to improve the <em>style</em> of xterm, in <a href="https://invisible-island.net/xterm/xterm.log.html#xterm_325">patch #325</a>. Most of the
+  changes were to reduce the scope of variables.</p>
+
+  <h2><a name="tools_dynamic" id="tools_dynamic">Dynamic
+  Tools</a></h2>
+
+  <p>Static analysis is only part of the process. When I was first
+  introduced to computer programming, I was told:</p>
+
+  <blockquote>
+    <p>Any interesting program has at least</p>
+
+    <ul>
+      <li>one loop,</li>
+
+      <li>one I/O statement, and</li>
+
+      <li>one bug.</li>
+    </ul>
+  </blockquote>
+
+  <p>The situation has not improved; interesting programs can be
+  run in many more ways than a static analyzer can see. Dynamic
+  analysis is used to explore a few ways the program might be run,
+  to look for performance and reliability problems.</p>
+
+  <h3><a name="tool_doalloc" id="tool_doalloc">doalloc</a></h3>
+
+  <p>I started looking for memory leaks in <a href="https://invisible-island.net/ded/td_lib/CHANGES.html#t19921116">November 1992</a> by
+  modifying a function <a href="https://github.com/ThomasDickey/td_lib-snapshots/blob/master/src/memory/doalloc.c">
+  <code>doalloc</code></a> in my directory editor's library. I had
+  written this in 1986 as a wrapper for malloc and realloc (since
+  pre-ANSI C could not be relied upon for reallocating a
+  <span style="font-variant:small-caps">null</span> pointer).
+  Because I made all calls to malloc or realloc through this
+  function, I could easily extend it to check for memory leaks.</p>
+
+  <p>This was back in the days when tools for leak-checking were
+  not common. So I wrote my own,</p>
+
+  <ul>
+    <li>making an array of all of the allocated addresses,</li>
+
+    <li>removing the freed addresses from the array,</li>
+
+    <li>debug-logging to show where an allocation was made in the
+    program, and</li>
+
+    <li>reporting the addresses not freed using this debugging
+    information.</li>
+  </ul>
+
+  <p>To do this effectively, the program which is being analyzed
+  must also be modified to free memory which was allocated
+  <em>permanently</em>, i.e., not normally freed while the program
+  is running. This process exposes inconsistencies in the program's
+  use of memory and usually will make it fail. Later (by 1996), I
+  used ElectricFence to trigger these failures in the debugger,
+  where I could get the file- and line-information from a
+  traceback.</p>
+
+  <p>Later I encountered other programs using a similar approach:
+  keep track of memory allocated, and report just before exiting. I
+  improved some of those. For instance:</p>
+
+  <ul>
+    <li>
+      <p><a href="https://invisible-island.net/vile/vile.html">vile</a> — I added
+      functions for freeing “permanent” memory starting
+      in <a href="https://invisible-island.net/vile/CHANGES.R3.html#v3_34">February 1993</a>.
+      Those were all ifdef'd with <code>NO_LEAKS</code>, following
+      my practice with <a href="https://invisible-island.net/ded/ded.html"><strong>ded</strong></a>.</p>
+    </li>
+
+    <li>
+      <p><a href="https://lynx.invisible-island.net/">lynx</a> had
+      compile-time checks for this as part of making a "dbg"
+      flavor. This was one of 41 <em>targets</em> in the original
+      makefile, before I replaced it with a configure script:</p>
+
+      <blockquote>
+        <!--{{atr2html-->
+
+        <p style="font-family: monospace; font-size: 10pt;" class="code-block"><font color="#800000">#&nbsp;for&nbsp;some&nbsp;reason&nbsp;loc_t&nbsp;isn't&nbsp;defined&nbsp;when&nbsp;compiling&nbsp;for&nbsp;debug&nbsp;on&nbsp;my&nbsp;system.<br>
+        </font> <font color="#800000">#&nbsp;needed&nbsp;for&nbsp;NLchar.h<br></font><strong><font color="#000080">dbg</font></strong>:<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cd&nbsp;WWW/Library/osf;&nbsp;<font color="#008080">$(MAKE)</font>&nbsp;CC=<font color="#800080">"gcc"</font>&nbsp;LYFLAGS=<font color="#800080">"-DDIRED_SUPPORT&nbsp;\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-DLY_FIND_LEAKS"</font><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cd&nbsp;src;&nbsp;<font color="#008080">$(MAKE)</font>&nbsp;all&nbsp;CC=<font color="#800080">"gcc"</font>&nbsp;MCFLAGS=<font color="#800080">"-O&nbsp;-Wall&nbsp;</font><font color="#008080">$(ADDFLAGS)</font><font color="#800080">&nbsp;\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-DFANCY_CURSES&nbsp;-DLY_FIND_LEAKS&nbsp;\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-Dloc_t=_LC_locale_t&nbsp;-D_locp=__lc_locale\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-DDIRED_SUPPORT&nbsp;-DOK_TAR&nbsp;-DOK_GZIP&nbsp;-DOK_OVERRIDE&nbsp;\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-DUNIX&nbsp;-I../</font><font color="#008080">$(WWWINC)</font><font color="#800080">&nbsp;-DEXEC_LINKS&nbsp;\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-DALLOW_USERS_TO_CHANGE_EXEC_WITHIN_OPTIONS&nbsp;</font><font color="#008080">$(SITE_DEFS)</font><font color="#800080">"</font>&nbsp;<font color="#800080">\<br>
+        </font>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#008080">LIBS</font>=<font color="#800080">"-lcurses&nbsp;-ltermcap&nbsp;\<br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#008080">$(WAISLIB)</font><font color="#800080">&nbsp;</font><font color="#008080">$(SOCKSLIB)</font><font color="#800080">&nbsp;</font><font color="#008080">$(SITE_LIBS)</font><font color="#800080">"</font>&nbsp;<font color="#800080">\<br>
+        </font>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#008080">WWWLIB</font>=<font color="#800080">"../WWW/Library/osf/libwww.a"</font><br>
+
+        <!--atr2html}}--></p>
+      </blockquote>
+
+      <p>I made the <code>LY_FIND_LEAKS</code> definition into a
+      configure option (<a href="https://lynx.invisible-island.net/current/CHANGES2.8">v2-7-1ac-0.6</a>,
+      in March 1997) and provided a run-time option to turn it on
+      (<a href="https://lynx.invisible-island.net/current/CHANGES.html#v2.8.5dev.13">2.8.5dev.13</a>,
+      in January 2003).</p>
+    </li>
+  </ul>
+
+  <h3><a name="tool_dbmalloc" id="tool_dbmalloc">dbmalloc/dmalloc</a></h3>
+
+  <p>One drawback to the approach I used with <code>doalloc</code>
+  was that it relied upon debug-code which I compiled into the
+  directory editor. It would be nice to have an add-on library that
+  I could just <em>re-link</em> the program to get memory-leak
+  checking (which is fast), rather than <em>re-compile</em> (which
+  is slow).</p>
+
+  <p>People posted useful programs to Usenet; I collected useful
+  programs for my projects. I went in search of a memory-leak
+  checker, at the same time that I was extending doalloc.</p>
+
+  <p>The first one that I found was <a href="https://invisible-island.net/dbmalloc/dbmalloc.html">dbmalloc</a> in <a href="https://invisible-island.net/ded/td_lib/CHANGES.html#t19921113">November 1992</a>, written
+  by <a href="https://www.linkedin.com/in/conorcahill">Conor
+  Cahill</a>, originally posted to <em>comp.sources.misc</em> in
+  volume 32 (September 1992). This was patch-level 14; Cahill had
+  posted a much smaller version in <em>comp.sources.unix</em>
+  volume 22 (July 1990).</p>
+
+  <p>While dbmalloc worked, it had a few drawbacks:</p>
+
+  <ul>
+    <li>I had to include its header file (<code>dbmalloc.h</code>)
+    which redefined the standard string- and memory-functions in
+    terms of its own functions,</li>
+
+    <li>I had to link my program with its static library
+    (<code>libdbmalloc.a</code>).</li>
+
+    <li>dbmalloc was not self-contained: it called the
+    <em>system</em> functions corresponding to its functions by
+    extracting objects from the system's static C runtime library
+    (<code>libc.a</code>) and <em>patching</em> those object files
+    to allow dbmalloc to intercept calls to <code>memcpy</code>,
+    <code>memmove</code> and <code>memset</code>.</li>
+  </ul>
+
+  <p>That aspect of patching the system library was a drawback: it
+  did not always work, and became less viable as shared libraries
+  became more prevalent. Also, it was awkward not being able to
+  turn the leak-checking <em>off</em> in a given executable. I
+  looked for alternatives, and found dmalloc 3.1.0, published in
+  July 1995.</p>
+
+  <p>There were later releases (see its <a href="http://dmalloc.com/">homepage</a>), but for this discussion the
+  initial version from 1995-1996 is appropriate.</p>
+
+  <p>According to its <em>NEWS</em> file, it was first published
+  1993/04/06 on <em>comp.sources.unix</em> (but it is not present
+  in the archives). Its <em>ChangeLog</em> states that development
+  began in March 1992. The earliest reliable mention of dmalloc
+  that I have found is a comment in <a href="http://www.delorie.com/djgpp//mail-archives/browse.cgi?p=djgpp/1995/04/05/16:10:59">
+  Mail Archives: djgpp/1995/04/05/16:10:59</a> by Marty Leisner
+  that he had ported it to DJGPP the previous year. dmalloc's
+  changelog comments on that for July 1994. That was probably
+  version 2.1.0, from 1994/5/11.</p>
+
+  <p>Like dbmalloc, one must include its header and link with its
+  static library to use it. On the other hand:</p>
+
+  <ul>
+    <li>it is self-contained (can be built from source),</li>
+
+    <li>the debugging features are enabled by environment
+    variables.</li>
+  </ul>
+
+  <p>The two libraries used a different approach toward
+  intercepting function calls to allow diagnosing them.
+  dbmalloc</p>
+
+  <ul>
+    <li>intercepts 51 symbols by providing those in its library,
+    and makes a special case for <code>memcpy</code> and</li>
+
+    <li>including its header file additionally redefines 39 of
+    those symbols to keep track of the filename and line-number
+    where a call was made</li>
+  </ul>
+
+  <p>In contrast, dmalloc</p>
+
+  <ul>
+    <li>intercepts <em>fewer</em> standard symbols in its library
+    than dbmalloc: (<code>malloc</code>, <code>realloc</code>,
+    <code>calloc</code>, <code>free</code>, as well as the
+    nonstandard <code>cfree</code>).</li>
+
+    <li>redefines other standard symbols (28) via macros.</li>
+  </ul>
+
+  <p>At the same time, I preferred the reports from dbmalloc. It
+  also seemed to provide better coverage.</p>
+
+  <p>I also found dbmalloc to be more robust. Indeed, on revisiting
+  the tools to write this summary, I find that it was easy to get
+  dbmalloc to build and work, but that is not the case for dmalloc.
+  For both, it was necessary to delete their conflicting prototypes
+  for <code>malloc</code>, etc. But dmalloc's configure script</p>
+
+  <ul>
+    <li>was confused by glibc's <code>malloc.h</code>, making
+    dmalloc not generate its own file, and</li>
+
+    <li>was confused by gcc's no longer accepting the
+    <code>-traditional</code> option, making dmalloc not define its
+    symbol <code>CONST</code>.</li>
+  </ul>
+
+  <p>Here is a simple demo to show how a program would be
+  instrumented for both tools:</p>
+
+  <blockquote>
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;" class="code-block"><font color="#008000">#include</font>&nbsp;<font color="#800080">&lt;stdlib.h&gt;</font><br>
+    <font color="#008000">#include</font>&nbsp;<font color="#800080">&lt;stdio.h&gt;</font><br>
+    &nbsp;<br>
+    <font color="#008000">#ifdef</font>&nbsp;DBMALLOC<br>
+    <font color="#008000">#include</font>&nbsp;<font color="#800080">&lt;dbmalloc.h&gt;</font><br>
+    <font color="#008000">#endif</font><br>
+    &nbsp;<br>
+    <font color="#008000">#ifdef</font>&nbsp;DMALLOC<br>
+    <font color="#008000">#include</font>&nbsp;<font color="#800080">&lt;dmalloc.h&gt;</font><br>
+    <font color="#008000">#endif</font><br>
+    &nbsp;<br>
+    <strong><font color="#008000">int</font></strong>&nbsp;main(<strong><font color="#008000">void</font></strong>)<br>
+    {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong><font color="#008000">char</font></strong>&nbsp;*oops&nbsp;=&nbsp;malloc(<strong><font color="#008080">100</font></strong>);<br>
+
+    <font color="#008000">#ifdef</font>&nbsp;&nbsp;DBMALLOC<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;malloc_dump(fileno(fopen("<font color="#800080">dbmalloc.log</font>",&nbsp;"<font color="#800080">w</font>")));<br>
+
+    <font color="#008000">#endif</font><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit&nbsp;(oops&nbsp;!=&nbsp;<strong><font color="#008080">0</font></strong>);<br>
+
+    }<br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>Turning on the <code>DBMALLOC</code> definition for the first
+  tool, here is the resulting logfile:</p>
+
+  <blockquote>
+    <pre class="code-block">************************** Dump of Malloc Chain ****************************
+POINTER     FILE  WHERE         LINE      ALLOC        DATA     HEX DUMP
+TO DATA      ALLOCATED         NUMBER     FUNCT       LENGTH  OF BYTES 1-7
+-------- -------------------- ------- -------------- ------- --------------
+0200C088 demo.c                    14 malloc(1)          100 01010101010101
+0200C178 unknown                      malloc(2)          568 8034ADFB010101
+</pre>
+  </blockquote>
+
+  <p>Here is a report generated with dmalloc 3.1.0 (after making
+  fixes for the problems noted):</p>
+
+  <blockquote>
+    <pre class="code-block">1: Dmalloc version '3.1.0'.  UN-LICENSED copy.
+1: dmalloc_logfile 'dmalloc.log': flags = 0x4f41d83, addr = 0
+1: starting time = 1471795976
+1: free count/bits:  31/7
+1: basic-block 4096 bytes, alignment 8 bytes, heap grows up
+1: heap: start 0x6d8000, end 0x6db000, size 12288 bytes, checked 1
+1: alloc calls: malloc 1, realloc 0, calloc 0, free 0
+1:  total memory allocated: 112 bytes (1 pnts)
+1:  max in use at one time: 112 bytes (1 pnts)
+1: max alloced with 1 call: 112 bytes
+1: max alloc rounding loss: 16 bytes (12%)
+1: max memory space wasted: 3952 bytes (96%)
+1: final user memory space: basic 0, divided 1, 4080 bytes
+1:    final admin overhead: basic 1, divided 1, 8208 bytes (66%)
+1: not freed: '0x6da008|s1' (100 bytes) from 'demo.c:14'
+1:   known memory not freed: 1 pointer, 100 bytes
+1: ending time = 1471795976, elapsed since start = 0:0:0
+</pre>
+  </blockquote>
+
+  <p>Because neither tool did everything, I used both, depending on
+  what I was trying to do.</p>
+
+  <p>I first mentioned dmalloc in email in July 1996, and
+  incorporated it and dbmalloc as options in the configure script
+  for ncurses later that year (<a href="https://invisible-island.net/ncurses/NEWS.html#t961221">1996/12/21</a>). Up until then, I
+  would simply edit the makefile for programs because I preferred
+  to not make debugging features part of the build-scripts. I did
+  this for ncurses first, because it uses several makefiles.</p>
+
+  <p>Later, I made similar changes to other configure scripts:</p>
+
+  <ul>
+    <li><a href="https://invisible-island.net/vile/CHANGES.R6.html#v6_4h">vile</a>
+    (1997/01/19)</li>
+
+    <li><a href="https://invisible-island.net/cproto/CHANGES.html#t19980121">cproto</a>
+    (1998/01/21)</li>
+
+    <li><a href="https://invisible-island.net/cdk/CHANGES.html#t19990626">cdk</a>
+    (1999/06/26)</li>
+  </ul>
+
+  <p>Finally, in 2006 I combined these options in a configure
+  macro, and gradually added that to each program that I
+  maintain.</p>
+
+  <h3><a name="tool_atac" id="tool_atac">atac</a></h3>
+
+  <p>Checking for memory leaks is not the only useful thing to do
+  at runtime. Developers would like to know how effective their
+  test cases are, by measuring test-coverage. In 1995, some people
+  at Bell Labs made available a version of <a href="https://invisible-island.net/atac/atac.html">ATAC</a>. I made some changes to allow it to
+  work with gcc 2.7.0 (see the <a href="http://terasaur.net/item/show/atac-30dec95/2813">iBiblio
+  archive</a>), and was interested in this for a few years.</p>
+
+  <p>Here is my original announcement:</p>
+
+  <blockquote>
+    <pre class="code-block">From dickey Sun Dec 31 13:10:39 1995
+Subject: atac (test-coverage)
+Newsgroups: comp.os.linux.announce
+Organization: Clark Internet Services, Inc., Ellicott City, MD USA
+Summary: atac3.3.13 ported to Linux
+Keywords: test coverage
+Lines: 16
+X-Newsreader: TIN [UNIX 1.3 950824BETA PL0]
+Status: RO
+
+ATAC was written by some folks at BellCore, who're working on a newer
+version (licensed).  I modified the version that they made available for
+free so that it'll run on Linux with gcc 2.7.0 (mostly by accommodating
+the non-standard features of gcc), and uploaded it to sunsite.unc.edu
+(now in Incoming).  I've found it very useful for setting up regression
+tests for my programs.
+
+ATAC measures how thoroughly a program is tested by a set of tests using
+data flow coverage techniques, identifies areas that are not well
+tested, identifies overlap among tests, and finds minimal covering test
+sets.  Atac displays C source code, highlighting code fragments not
+covered by test executions.
+
+--
+Thomas E. Dickey
+dickey@clark.net
+</pre>
+  </blockquote>
+
+  <p>I used this for improving the test-cases for <a href="https://invisible-island.net/cproto/cproto.html">cproto</a> and <a href="https://invisible-island.net/diffstat/diffstat.html">diffstat</a>. I also built ncurses with
+  it, in September 1996. Unlike cproto and diffstat, there is no
+  set of test cases for ncurses which can be run in batch mode. It
+  was interesting to explore the coverage of the ncurses
+  test-programs, but I quickly found that doing this properly would
+  take a little time:</p>
+
+  <blockquote>
+    <pre class="code-block">From dickey Wed Sep 25 20:33:03 1996
+Subject: test-coverage of ncurses...
+To: ncurses-list@netcom.com (Ncurses Mailing List)
+Date: Wed, 25 Sep 1996 20:33:03 -0400 (EDT)
+X-Mailer: ELM [version 2.4 PL24alpha3]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Length: 939
+Status: RO
+
+Just for grins (I had it on my list for this month, to gauge feasibility), I
+build ncurses with atac (a test coverage tool that I did some work on last
+year, so I could use it for analysis of some of my programs).  If/when I have
+time, I've got on my list to design a test for lib_doupdate.c that'll exercise
+more than the 5-10% of the paths/conditions that're being tested at present.
+
+Basically atac generates a listing showing the places (and conditions) in the
+code that aren't exercised (i.e., it highlights them).
+
+<strong>The listings tend to be long, since most paths aren't exercised, and I didn't
+spend a lot of time pruning the data down (the shortest I generated is ~11000
+lines).</strong>  I use a script that converts vile into a pager (I'll post it if anyone
+needs it).
+
+I've put the listings I generated in
+
+        ftp.clark.net:/pub/dickey/ncurses/atac-output.zip
+
+(I'll leave it there a couple of days).
+
+--
+Thomas E. Dickey
+dickey@clark.net
+</pre>
+  </blockquote>
+
+  <p>But gcc 2.7.2 introduced a problem, as I commented to
+  Jürgen Pfeifer early in 1997:</p>
+
+  <blockquote>
+    <pre class="code-block">From dickey Mon Jan 27 20:45:38 1997
+Subject: simpler solutions
+To: Juergen.Pfeifer@t-online.de (Juergen Pfeifer)
+Date: Mon, 27 Jan 1997 20:45:38 -0500 (EST)
+X-Mailer: ELM [version 2.4 PL24alpha3]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Status: RO
+Content-Length: 1615
+Lines: 31
+
+I looked closely at the atac vs ({ ...  }) conflict, and realized that this is
+supposed to be a gcc extension.  The one file that's giving me trouble isn't
+ifdef'd to turn it off when gcc extensions are to be suppressed.  (And the gcc
+#define __STRICT_ANSI__ isn't turned on when I set -ansi).
+
+However, understanding the problem, I can work around it w/o modifying atac.
+<strong>The ({ ...  }) delimits a compound statement, which is a block that can appear
+(almost) anywhere an expression can.</strong>  That'd be rather difficult to implement
+in atac, since it completely changes the notion of flow control.  So I'm
+working around it by modifying &lt;sys/time.h&gt; to be ANSI-compliant (there's code
+in the X distribution that works just fine).  I'm willing to fix bugs in atac,
+but not to maintain a whole host of non-standard stuff.
+</pre>
+  </blockquote>
+
+  <p>The “compound statement” is a GCC extension
+  <em>statement expression</em>. <a href="https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html">GCC's
+  statement expressions</a> are used in glibc's header files. Most
+  compilers accept some extensions, but this particular one changes
+  the syntax rather than just adding a keyword. An ANSI C compiler
+  cannot handle this extension.</p>
+
+  <p>ATAC works by using the C preprocessor to add line- and
+  column-markers to every token, and starting with <em>that</em>,
+  adds its own functions for counting the number of times each part
+  of the program is executed.</p>
+
+  <p>That sounds simple, but there are a few problems:</p>
+
+  <ul>
+    <li>The ATAC developers were <em>old-school</em> Unix people.
+    They used integers (<code>int</code>) interchangeably with
+    pointers (<code>char*</code>).</li>
+
+    <li>I cleaned up the code to address that, but then it uses
+    yacc. Here again, the code ignored the difference between
+    integers and pointers. More fixes …</li>
+
+    <li>The C preprocessor which they provided was … a
+    modified version of GNU C's preprocessor. The ATAC developers
+    apparently used the preprocessor from GCC 1.40 (June
+    1991).</li>
+
+    <li>I upgraded the preprocessor once (to gcc 2.7.0). The change
+    needed for ATAC was small, but the C preprocessor gets changed
+    frequently and is a large file (growing from 6 to 11 thousand
+    lines).</li>
+  </ul>
+
+  <p>All of that is technical, and could be fixed. However, its
+  incorporation of GNU C preprocessor makes the resulting license
+  too restrictive to bother with.</p>
+
+  <h3><a name="tool_purify" id="tool_purify">purify</a></h3>
+
+  <p>In writing this page and looking for the state of the art in
+  1992 when I modified <code>doalloc</code>, I found a <a href="https://people.cs.umass.edu/~emery/pubs/pldi101-novark.pdf">contemporary
+  paper</a> citing a 1992 paper with this bibliographic entry:</p>
+
+  <blockquote>
+    <p>R. Hastings and B. Joyce. <em>Fast detection of memory leaks
+    and access errors</em>. In <em>Proceedings of the Winter
+    ’92 USENIX conference</em>, pages 125–136. USENIX
+    Association, 1992.</p>
+  </blockquote>
+
+  <p>The <a href="http://web.stanford.edu/class/cs343/resources/purify.pdf">actual
+  paper</a> has "Purify" in the title.</p>
+
+  <p>We did not have Purify at the Software Productivity Consortium
+  (SPC). It came on the market a little too late to be of interest
+  to the management.</p>
+
+  <p>I encountered it after I left SPC, and joined a large
+  development project. The management <em>there</em> was
+  interested, and seeing that I was involved in making several
+  improvements (such as converting to ANSI C), I was asked to
+  evaluate two tools for possible use in 1995:</p>
+
+  <ul>
+    <li>Purify (and Quantify)</li>
+
+    <li><a href="http://vasc.ri.cmu.edu/media/manuals/insure.5.x/users/insguide.htm">
+    Insure++</a></li>
+  </ul>
+
+  <p>Insure++ was interesting because it had a nice user interface
+  depicting the problems found and the corresponding stack traces.
+  However, it was very slow on our Solaris servers. Purify
+  performed reasonably well, and Quantify seemed as if it could be
+  useful.</p>
+
+  <p>Even Purify was not <em>fast</em>. It relies upon making a
+  modified executable (see <a href="http://patents.justia.com/inventor/reed-hastings">patents by
+  Reed Hastings</a>), and for a newly compiled executable that
+  takes time. Even after “purifying” the executable, it
+  uses more memory (because it makes a map of the data to keep
+  track of what was initialized, etc.). Our servers did not have
+  much memory by today's standards. Also, some resource settings
+  for Motif applications were ignored, making the windows lose
+  their background pixmaps.</p>
+
+  <p>On the other hand, Purify required less setup than
+  dbmalloc/dmalloc to use (essentially just linking with the
+  <code>purify</code> tool). No special header file was needed. It
+  has *functions* which can be called, but for casual use, those
+  (like most of the functions in dbmalloc/dmalloc) are
+  unnecessary.</p>
+
+  <p>Quantify was not that useful. Our applications spent most of
+  their time in a tiny area of its graphical display and the GUI
+  had no way to select an area for detailed analysis.</p>
+
+  <h3><a name="tool_gprof" id="tool_gprof">prof/gprof</a></h3>
+
+  <p>Quantify was not the only tool for profiling.</p>
+
+  <p>I was familiar with gprof by the time I started working with
+  Eric Raymond and Zeyd Ben-Halim in 1995. After the <a href="https://invisible-island.net/ncurses/ncurses-license.html#ncurses_1_9_1">initial
+  discussion</a> of incorrect handling of background color and
+  (inevitably) compiler warnings, I sent this:</p>
+
+  <blockquote>
+    <pre class="code-block">From dickey Sun Apr 23 06:57:14 1995
+Subject: profiling comparison (brief)
+To: esr@snark.thyrsus.com, esr@locke.ccil.org,
+        zmbenhal@netcom.com (Zeyd M. Ben-Halim)
+Date: Sun, 23 Apr 1995 06:57:14 -0400 (EDT)
+X-Mailer: ELM [version 2.4 PL24alpha3]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Length: 1970
+Status: RO
+
+Here's a first cut of the differences between profiling my test case with 1.8.7
+and 1.9.  (I added/subtracted in my calculator program to account for the major
+differences between the numbers from gprof).
+
+As you'll see, the biggest (but not all) differences were from
+        1.36    wnoutrefresh
+         .84    wrenderchar
+         .66    write
+         .38    relative_move
+         .32    wchangesync
+         .33    wladdch
+
+My impression of the other numbers is that you're making fewer I/O calls, but
+possibly emitting more characters.  Next pass, I'll make the mods to allow
+redirection of the screen, so I can get a character count to verify this hunch.
+
+btw, in one of zeyd's most recent patches, the definition of TERMINFO
+got moved, so that the program doesn't make w/o patching the makefile.
+
+-------------------------------------------------------------------------------
++5.56   5.56    #mcount (profiling 1.8.7)
+-8.40   -2.84   #mcount (1.9)
++32.53  29.69   #ncurses (total 1.9)
+-25.72  3.97    #ncurses (total 1.8.7) -- actual difference
++11.94  15.91   #write (1.8.7)
+-12.61  3.30    #write (1.9)
++1.54   4.84    #IDcTransformLine (1.8.7)
+-1.62   3.22    #IDcTransformLine (1.9)
++1.20   4.42    #wladdch (1.8.7)
+-1.53   2.89    #wladdch (1.9)
++1.01   3.90    #_IO_vfprintf (1.8.7)
+-.80    3.10    #_IO_vfprintf (1.9)
++.52    3.62    #_IO_file_overflow (1.8.7)
+-.39    3.23    #_IO_file_overflow (1.9)
++.41    3.64    #strcat (1.8.7)
+-.61    3.03    #strcat (1.9)
++.36    3.39    #tparm (1.8.7)
+-.41    2.98    #tparm (1.9)
++.35    3.33    #_IO_default_xsputn
+-.26    3.07    #_IO_default_xsputn (1.9)
++.34    3.41    #strcpy
+-.39    3.02    #strcpy (1.9)
++.30    3.32    #wnoutrefresh
+-1.66   1.66    #wnoutrefresh (1.9)
+-.84    .82     #wrenderchar (1.9)
+-.38    .44     #relative_move (1.9)
+-.32    .12     #wchangesync (1.9)
++.22    .34     #baudrate (1.8.7!)
++.18    .52     #waddnstr
+-.25    .27     #waddnstr (1.9)
+-.00    .27     #baudrate (1.9)
+
+--
+Thomas E. Dickey
+dickey@clark.net
+</pre>
+  </blockquote>
+
+  <p>I began the autoconf-generated configure script shortly after
+  (during <a href="https://invisible-island.net/ncurses/ncurses-license.html#ncurses_1_9_2">May
+  1995</a>). After some discussion regarding the libraries that
+  should be built, I extended the script to generate makefile rules
+  for profiling. Combining all of the flavors in one build was not
+  <em>my</em> idea (since it makes things unnessarily complex). But
+  I agreed to make the changes:</p>
+
+  <blockquote>
+    <pre class="code-block">### ncurses 1.9.2c -&gt; 1.9.2d
+
+* revised 'configure' script to produce libraries for normal, debug,
+  profile and shared object models.
+
+### ncurses 1.9.1 -&gt; 1.9.2
+
+* use 'autoconf' to implement 'configure' script.
+* panels support added
+* tic now checks for excessively long termcap entries when doing translation
+* first cut at eliminating namespace pollution.
+</pre>
+  </blockquote>
+
+  <p>The profiling libraries for ncurses are not used often (if
+  something <em>is</em> used, I get bug reports). Debian's package
+  description says they are present in the debugging package for
+  ncurses. But they are not there. The <a href="http://metadata.ftp-master.debian.org/changelogs//main/n/ncurses/ncurses_5.9+20140913-1_changelog">
+  changelog</a> says they have been gone a while:</p>
+
+  <blockquote>
+    <pre class="code-block">ncurses (5.2.20020112a-1) unstable; urgency=low
+
+  * New upstream patchlevel.
+    - Correct curs_set manual page (Closes: #121548).
+    - Correct kbs for Mach terminal types (Closes: #109765).
+  * Include a patch to improve clearing colored lines (Closes: #112561).
+  * Build even shared library with debugging info; we strip it out anyway,
+    but this makes the build directory more useful.
+  * Build in separate object directories.
+  * Build wide character support in new packages.
+  * Change the -dbg packages to include debugging shared libraries in
+    /usr/lib/debug; lose the profiling and static debugging libraries;
+    ship unstripped libraries in -dev.
+  * Don't generate debian/control or debian/shlibs.dummy.
+  * Use debhelper in v3 mode.
+
+ -- Daniel Jacobowitz &lt;dan@debian.org&gt;  Wed, 16 Jan 2002 22:20:00 -0500
+</pre>
+  </blockquote>
+
+  <p>For a while before that change, profiling had fallen into
+  disuse with Linux because no one was in a hurry to get gprof
+  working after the transition to ELF in the late 1990s. For
+  example, here is part of a message I sent to vile's development
+  list:</p>
+
+  <blockquote>
+    <pre class="code-block">From dickey Mon Jul  5 21:52:37 1999
+Subject: vile-8.3k.patch.gz
+To: vile-code@foxharp.boston.ma.us (Paul Fox's list)
+Date: Mon, 5 Jul 1999 21:52:37 -0400 (EDT)
+X-Mailer: ELM [version 2.4 PL25]
+Content-Type: text
+Status: RO
+Content-Length: 1950
+Lines: 36
+
+vile 8.3k - patch 1999/7/5 - T.Dickey &lt;dickey@clark.net&gt;
+
+Miscellenous fixes.  The biggest change is that I've got about 2/3 of the
+fixes I had in mind for long lines.  This makes the ruler info (and related
+cursor positioning) cached so it runs much faster.  That's for nonwrapped
+lines (I got bogged down in the logic for wrapped lines - it works, but
+the caching isn't doing anything useful there).  For both (wrapped/nonwrapped)
+there are other performance improvements.
+
+I used gcov to find the code I wanted to change.  Has anyone got a gprof that
+works with Linux ELF format?
+</pre>
+  </blockquote>
+
+  <p>and in 2001, I had this to say:</p>
+
+  <blockquote>
+    <pre class="code-block">Date: Thu, 5 Jul 2001 14:44:48 -0400 (EDT)
+From: "Thomas E. Dickey" &lt;dickey@herndon4.his.com&gt;
+To: &lt;os2-unix@eyup.org&gt;
+Subject: Re: [UnixOS2] ncurses.build
+In-Reply-To: &lt;Pine.GSO.4.21.0107051917500.15084-100000@cdc-ultra1.cdc.informatik.tu-darmstadt.de&gt;
+Message-ID: &lt;Pine.BSI.4.33.0107051443020.12415-100000@herndon4.his.com&gt;
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: owner-os2-unix@eyup.org
+Precedence: bulk
+Reply-To: os2-unix@eyup.org
+Status: RO
+Content-Length: 639
+Lines: 22
+
+On Thu, 5 Jul 2001, Stefan Neis wrote:
+
+&gt; On Thu, 5 Jul 2001, Thomas E. Dickey wrote:
+&gt;
+&gt; &gt; &gt;             --with-debug \
+&gt; &gt; &gt;             --with-profile \
+&gt; &gt;
+&gt; &gt; I don't know if profiling works on OS/2.
+&gt;
+&gt; Works nicely since IIRC EMX-0.9a, standard -pg switch to gcc, so I
+&gt; suppose it'll work for ncurses, too.
+
+"works" can be relative - it's been broken on Linux since the switch to
+ELF libraries some years ago (it "works" now only in the sense that the
+compile and gprof run, but the numbers are worthless because there's no
+timing information).
+
+-- 
+T.E.Dickey &lt;dickey@herndon4.his.com&gt;
+http://dickey.his.com
+ftp://dickey.his.com
+</pre>
+  </blockquote>
+
+  <p>Still, after a while, gprof was useful:</p>
+
+  <ul>
+    <li><a href="http://lists.nongnu.org/archive/html/lynx-dev/2002-12/msg00020.html">
+    Re: ALLOC_IN_POOL, Re: lynx-dev lynx2.8.5dev.11</a></li>
+
+    <li><a href="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=294853">Bug#294853:
+    dialog: Bad performance with large menus.</a></li>
+  </ul>
+
+  <p>I have used it frequently in improvements for <a href="https://invisible-island.net/mawk/mawk.html">mawk</a>, starting in <a href="https://invisible-island.net/mawk/CHANGES.html#t20090920">September 2009</a> with a
+  discussion with Jim Mellander about the hashing algorithm. Rather
+  than embed rules for profiling as done in ncurses, I added
+  another <a href="https://invisible-island.net/scripts/readme.html#configure_scripts">wrapper
+  script</a> for configuring with the profiling option:</p>
+
+  <blockquote class="code-block">
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <font color="#800000">#!/bin/sh</font><br>
+    <font color="#008080">CFLAGS</font>=<font color="#800080">'-pg'</font>&nbsp;cfg-normal&nbsp;<font color="#800080">"$@"</font><br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>Doing this for ncurses (to just get useful profiling
+  libraries) is different, because I want to use the profiling
+  version of the C runtime as well. Otherwise timing for
+  <code>strcpy</code>, <code>memset</code>, etc., will be
+  overlooked. Here is a script which I started in 1995, updated
+  last in 2005 to accommodate a changed name for the C runtime
+  profiling library:</p>
+
+  <blockquote class="code-block">
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <font color="#800000">#!/bin/sh</font><br>
+    <font color="#008080">CFLAGS</font>=<font color="#800080">'-pg'</font>&nbsp;\<br>
+    <font color="#008080">LDFLAGS</font>=<font color="#800080">'-pg'</font>&nbsp;\<br>
+    <font color="#008080">LIBS</font>=<font color="#800080">"-lc_p"</font>&nbsp;\<br>
+    cfg-normal&nbsp;\<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--with-profile&nbsp;\<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--without-normal&nbsp;\<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--without-debug&nbsp;\<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#008080">"$@"</font><br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <h3><a name="tool_gcov" id="tool_gcov">gcov</a></h3>
+
+  <p>I began using <a href="https://gcc.gnu.org/onlinedocs/gcc/Gcov.html">gcov</a> (GNU
+  coverage analyzer) in 1999. It was not a replacement for <a href="https://invisible-island.net/personal/lint-tools.html#tool_atac">ATAC</a> because:</p>
+
+  <ul>
+    <li>gcov did not provide a listing of the <em>branch
+    decisions</em> which were not executed.</li>
+
+    <li>gcov does not show how subsets of the data combine to give
+    better test coverage.</li>
+
+    <li>gcov essentially is a tool to show the same information
+    that gprof shows, in a different format.</li>
+  </ul>
+
+  <p>The last point (a different format of gprof) is the way I have
+  used it, e.g., with vile, mawk and other programs. Using gprof to
+  study more than one file is cumbersome.</p>
+
+  <p>Along the way, the options I needed for running gcov changed,
+  from</p>
+
+  <blockquote class="code-block">
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <font color="#800000">#!/bin/sh</font><br>
+    <font color="#008080">LDFLAGS</font>=<font color="#800080">"--coverage"</font>&nbsp;\<br>
+    <font color="#008080">CFLAGS</font>=<font color="#800080">'-fprofile-arcs&nbsp;-ftest-coverage'</font>&nbsp;\<br>
+
+    cfg-normal&nbsp;<font color="#008080">"$@"</font><br></p>
+  </blockquote>
+
+  <p>to just</p>
+
+  <blockquote class="code-block">
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <font color="#800000">#!/bin/sh</font><br>
+    <font color="#008080">CFLAGS</font>=<font color="#800080">'--coverage'</font>&nbsp;cfg-normal&nbsp;<font color="#008080">$*</font><br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p><a href="http://linux.die.net/man/1/gcov">Some
+  documentation</a> states that the <code>profile-arcs</code> and
+  <code>test-coverage</code> options are needed.</p>
+
+  <h3><a name="tool_valgrind" id="tool_valgrind">valgrind</a></h3>
+
+  <p>I began using <code>valgrind</code> in 2002, on more than one
+  program:</p>
+
+  <ul>
+    <li><code>ncurses</code> (<a href="http://lists.gnu.org/archive/html/bug-ncurses/2002-08/msg00008.html">August
+    10</a>)</li>
+
+    <li><code>lynx</code> (<a href="http://lists.nongnu.org/archive/html/lynx-dev/2002-08/msg00115.html">August
+    12</a>)</li>
+
+    <li><code>vile</code> (August 27)</li>
+
+    <li><code>tin</code> (September 30)</li>
+  </ul>
+
+  <p>Urs Janßen summarized the choices in discussing a bug
+  report</p>
+
+  <blockquote>
+    <pre class="code-block">ccmalloc (&lt;http://www.inf.ethz.ch/personal/biere/projects/ccmalloc/&gt;)
+and valgrind (&lt;http://developer.kde.org/~sewardj/&gt;) are very usefull
+(on Linux), MMS (&lt;http://hem1.passagen.se/blizzar/mss/&gt; also look
+very usefull last time I tested it (~2 years ago).
+</pre>
+  </blockquote>
+
+  <p>and</p>
+
+  <blockquote>
+    <pre class="code-block">*shrug* as I said before, I haven't used checkergcc for ages.
+insure looked like a good leak/bounds checker but it very expensive.
+ccmalloc is a bit noisy but imho the best freeware leak checker.
+valgrind has an acceptable noise level but misses some usefull
+informations like exact line numbers. I can't remember how good
+MMS was (but it must have been better than dmalloc, dbmalloc and
+electric fence).
+</pre>
+  </blockquote>
+
+  <p>Until 2004, I used Slackware for my development machine, and
+  routinely built things like <code>valgrind</code> as they became
+  available. I had a comment:</p>
+
+  <blockquote>
+    <pre class="code-block">On Mon, 30 Sep 2002, Martin Klaiber wrote:
+
+&gt; Urs Janßen  wrote:
+&gt;
+&gt; &gt; *shrug* as I said before, I haven't used checkergcc for ages.
+&gt;
+&gt; Probably a bug in checkergcc. In the docs they say that libc and
+&gt; ncurses are supported. I'll contact the developers.
+
+perhaps (but when I last looked at checkergcc a few months ago on Debian,
+there was no support for the current glibc, so it was useless).
+
+valgrind is interesting, but I had to hack it to make it run with
+Slackware 7.1 (it makes too many assumptions about the header files)
+</pre>
+  </blockquote>
+
+  <p>The nice thing about <code>valgrind</code> was that it
+  produced reports comparable to purify. And it was free.</p>
+
+  <p>Because effective use of <code>valgrind</code> requires the
+  program to be built with the debugging option, I modified the
+  configure scripts to combine the <code>--with-no-leaks</code> or
+  <code>--disable-leaks</code> options as a new option
+  <code>--with-valgrind</code>. I did that first for <a href="https://invisible-island.net/vile/CHANGES.html#v9_5n">vile</a>, then <a href="https://invisible-island.net/ncurses/NEWS.html#t20061216">ncurses</a>, late in 2006.</p>
+
+  <p>Like <code>purify</code>, <code>valgrind</code> gave warnings
+  that could be regarded as false positives. And like
+  <code>purify</code>, <code>valgrind</code> allows those to be
+  suppressed by configuration files. Ruben Thomas contributed a few
+  sample <em>suppression</em> files for ncurses in <a href="http://aerie.jexium-island.net/ncurses/NEWS.html#t20080920">2008</a>.
+  In practice, I do not use those, relying on the
+  “no-leaks” configuration for my testing. Either way,
+  others rarely use the suppression files and do not build no-leaks
+  configurations of ncurses (see <em><a href="https://invisible-island.net/ncurses/ncurses.faq.html#config_leaks">Testing for Memory
+  Leaks</a></em> in the ncurses FAQ).</p>
+
+  <p><code>Valgrind</code> comes packaged with default suppression
+  files. For instance, there are 152 items in
+  <code>default.supp</code> on my Debian/testing system in 2016.
+  The one for ncurses has 15.</p>
+
+  <p>When I check for leaks in <code>xterm</code> I have to ignore
+  about 5000 lines of listing. I <em>could</em> generate a
+  suppression file using <code>valgrind</code> (and experimented
+  with this early in 2006, suppressing 285 items). But once
+  ignored, even some useful cases can be overlooked.</p>
+
+  <p><a href="https://invisible-island.net/autoconf/my-autoconf/CHANGES.html#t20061214">Late in
+  2006</a>, I reorganized my autoconf macros for memory-leak
+  checks, so that doalloc, dbmalloc, doalloc and valgrind were all
+  handled by the same set of macros. <code>Purify</code> also was
+  supported by these macros, but the main ones are
+  <code>--with-no-leaks</code> and <code>--with-valgrind</code>. I
+  kept the existing <code>--disable-leaks</code> option in
+  configure scripts such as ncurses which had provided this for
+  some time.</p>
+
+  <h3><a name="tool_lcov" id="tool_lcov">lcov</a></h3>
+
+  <p>I started using <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a> early in
+  2014:</p>
+
+  <blockquote>
+    <p class="code-block">LCOV is a graphical front-end for GCC's
+    coverage testing tool gcov. It collects gcov data for multiple
+    source files and creates HTML pages containing the source code
+    annotated with coverage information. It also adds overview
+    pages for easy navigation within the file structure. LCOV
+    supports statement, function and branch coverage
+    measurement.</p>
+  </blockquote>
+
+  <p>I mentioned it as a way to organize regression tests while
+  discussing with Tom Shields a large change that he proposed
+  making to byacc (i.e., incorporating the b<strong>t</strong>yacc
+  code).</p>
+
+  <p>This may have been the article which I came across while
+  looking for a better test-coverage tool:</p>
+
+  <blockquote>
+    <p><a href="https://qiaomuf.wordpress.com/2011/05/26/use-gcov-and-lcov-to-know-your-test-coverage/">
+    Use gcov and lcov to know your test coverage</a></p>
+  </blockquote>
+
+  <p>Since then, I have used it as well for cproto, diffstat,
+  indent, mawk and xterm.</p>
+
+  <h2><a name="coding_process" id="coding_process">Process</a></h2>
+
+  <h3><a name="proc_ansification" id="proc_ansification">ANSIfication</a></h3>
+
+  <p>Early on, in 1995-1996, my goal was to convert all of the
+  K&amp;R code which I was maintaining to ANSI C, so that I could
+  use function prototypes, <code>const</code> and the standard
+  variable-argument syntax. I took care to avoid changing the
+  program unnecessarily while making these changes, relying on
+  <a href="https://invisible-island.net/ansification/">changes to object files</a> to alert me
+  to unintended changes.</p>
+
+  <p>Working with Paul Fox and others on <a href="https://invisible-island.net/vile/vile.html"><code>vile</code></a>, I had some concern
+  about being able to build the program on machines where ANSI C
+  was not supplied by the vendor (HPUX and SunOS). I used <a href="https://invisible-island.net/unproto/unproto.html">unproto</a>, on these platforms, and for
+  a while, compatibility with <code>unproto</code> determined what
+  features of ANSI C I would use. In particular, it could not
+  handle string concatenation in the C preprocessor.</p>
+
+  <p>Not all of this went smoothly. I became the maintainer for
+  <code>vile</code> rather suddenly after one of my changes made a
+  variable <code>const</code> which should not have been.</p>
+
+  <h3><a name="proc_cleanup" id="proc_cleanup">Code
+  Cleanup</a></h3>
+
+  <p>Making a variable “<code>const</code>” asks the
+  compiler and linker to make it <em>read-only</em>. Developers do
+  this to ensure that a function parameter does not change within
+  that function.</p>
+
+  <p>One unexpected issue with <code>const</code> is that it is not
+  possible to retrofit an application such as <a href="https://lynx.invisible-island.net/">lynx</a> or <a href="https://invisible-island.net/ncurses/ncurses.html">ncurses</a> without using casts. That is
+  because some of the longstanding interfaces use
+  non-<code>const</code> values, introducing an inconsistency. But
+  casts hide type mismatches. While there is (and I use) a compiler
+  warning to tell me about this, it is possible to introduce errors
+  due to isolated cases where a “const” variable is
+  modified.</p>
+
+  <h4><a name="proc_cleanup_ncurses" id="proc_cleanup_ncurses">ncurses...</a></h4>
+
+  <p>I added a configure option <code>--enable-const</code> to
+  ncurses which changes several of these inconsistent interfaces to
+  use <code>const</code>, noting that this is a difference versus
+  X/Open Curses. In NetBSD curses, the developers changed
+  interfaces to use <code>const</code> (saying that they had gotten
+  agreement from someone at The Open Group), but did not make it
+  configurable. This is not reflected in <a href="https://www2.opengroup.org/ogsys/catalog/C094">X/Open Curses
+  Issue 7</a> (in 2013). Finally with <a href="https://invisible-island.net/ncurses/announce-6.0.html">ncurses6</a> in 2015, I changed the
+  default for this option, to use <code>const</code>.</p>
+
+  <p>Besides making C programs (a little) type-safe, using
+  <code>const</code> also improves the time needed to load the
+  program. With Linux, you can see the loader statistics by setting
+  the environment variable <code>LD_DEBUG=statistics</code>.
+  Besides <em>compiler warnings</em> some of my work with
+  <code>const</code> has been aimed at improving the loader
+  statistics.</p>
+
+  <p>Constant/read-only variables are not the only aspect to
+  cleanup when doing a conversion to ANSI C. There are
+  variable-length argument lists to consider. Using
+  <code>gcc</code> you can declare that a given function is
+  “printflike” or “scanlike” — making
+  the compiler check calls to the function as if they were
+  <code>printf</code> or <code>scanf</code>. Both <a href="https://invisible-island.net/vile/vile.html">vile</a> and <a href="https://lynx.invisible-island.net/">lynx</a> had interesting
+  quirks to work around.</p>
+
+  <h4><a name="proc_cleanup_vile" id="proc_cleanup_vile">vile...</a></h4>
+
+  <p>When I first started working on <a href="https://invisible-island.net/vile/vile.html#history"><code>vile</code></a>, its internal
+  messages were formatted with <code>lsprintf</code> (a function
+  that was much like <code>sprintf</code>, but different):</p>
+
+  <ul>
+    <li>it provided fewer formatting options than
+    <code>sprintf</code> (a subset is not a problem),</li>
+
+    <li>it provided a few options <em>not</em> in
+    <code>sprintf</code>, e.g., for padding (a problem), text to
+    move it against the right margin, and</li>
+
+    <li>it was preferred over <code>sprintf</code> because (some of
+    the code dated to the late 1980s) there were conceivably
+    low-end systems without an ANSI C runtime.</li>
+  </ul>
+
+  <p>Because of the nonstandard formatting features provided by
+  <code>lsprintf</code> it was not possible to use the
+  <code>gcc</code> compiler warnings to look for parameter
+  mismatches. When I realized this, I started by making a patch for
+  <code>gcc</code> which would implement the extra features. But I
+  decided it was a bad idea, not because the features were
+  non-standard (<code>gcc</code> assumes the GNU C library, which
+  has a <em>few</em> non-standard features), but because it meant I
+  would have to patch the compiler — repeatedly.</p>
+
+  <p>Instead, I modified <code>lsprintf</code> to use standard
+  formatting codes and revised some calls to <code>lsprintf</code>
+  to avoid those features which had no counterpart in standard C.
+  Most of the changes for <code>lsprintf</code> dealt with the
+  lower-level <code>dofmt</code> function. I did that <a href="https://invisible-island.net/vile/CHANGES.R8.html#v8_3s">rapidly in 1999</a>:</p>
+
+  <blockquote>
+    <pre class="code-block">        + modify <strong>dofmt()</strong> to make its repertoire closer to printf's: remove 'D'
+          format code, and change 'p' to 'Q', 'u' to 'f'.
+</pre>
+  </blockquote>
+
+  <p>but the process of revising calls took some time, e.g., in
+  <a href="https://invisible-island.net/vile/CHANGES.html#v9_4g">2004</a></p>
+
+  <blockquote>
+    <pre class="code-block">        + modify <strong>dofmt()</strong> to handle "%*.*s" and "%.*s" formats, removed "%*S"
+          format.
+</pre>
+  </blockquote>and <a href="https://invisible-island.net/vile/CHANGES.html#v9_4v">2005</a>:
+
+  <blockquote>
+    <pre class="code-block">        + fixes to build clean(er) with Intel compiler:
+          + adjust ifdef's for fallback prototype for open() in case it is
+            really open64().
+          + add a "%u" format type to <strong>dofmt()</strong>, use it to display file-sizes.
+          + define DIRENT to struct dirent64 for the case where
+            _FILE_OFFSET_BITS is 64 and _LP64 is not defined.  Use a configure
+            script check to ensure the type exists.
+          + add/use function bpadc() to replace "%P" and "%Q" formats in
+            <strong>dofmt()</strong>.
+          + add/use function format_int() to replace "%r" format in <strong>dofmt()</strong>.
+</pre>
+  </blockquote>
+
+  <p>Of course, GNU C is not the only runtime with
+  <code>printf</code> or <code>scanf</code> extensions (vendor Unix
+  systems have some longstanding quirks in this area which are not
+  in standard C). But in practice the only extensions which I
+  <em>use</em> are those which provide better diagnostics without
+  interfering with portability.</p>
+
+  <h4><a name="proc_cleanup_lynx" id="proc_cleanup_lynx">lynx...</a></h4>
+
+  <p>My work on <a href="https://lynx.invisible-island.net/">lynx</a> in 1998 included
+  changes to reduce the possibility of buffer-overflows. At that
+  point, <code>lynx</code> used its own functions for allocating
+  and copying memory for strings, but used <code>sprintf</code> for
+  formatting strings.</p>
+
+  <p>The latter was a problem because not all of the buffer-sizes
+  were checked, as reported by Jeffrey Honig in <a href="http://lists.nongnu.org/archive/html/lynx-dev/1998-05/msg00173.html">
+  May 1998</a>. The suggested “Fix” was not a solution,
+  because <code>snprintf</code> requires the <em>same
+  information</em> for its correct use as the (presumably correct)
+  checks already in place.</p>
+
+  <p>Rather than imitate <code>snprintf</code> with its emphasis on
+  repeating the programmer's assumptions about fixed buffer sizes,
+  a more appropriate solution should take into account that many of
+  the formatting operations in <code>lynx</code> used string
+  copying and concatenation to <em>avoid</em> using
+  <code>sprintf</code>. If there were a portable function which
+  could format into a dynamically-allocated string, that would
+  solve the problem as well as making <code>lynx</code> easier to
+  maintain.</p>
+
+  <p>There were (are <em>are</em> as of 2016) no suitable standard
+  functions for this purpose. Standardization lags. Originally
+  written by Chris Torek in the early 1990s, <code>snprintf</code>
+  was incorporated in NetBSD, OpenBSD, FreeBSD, and
+  <em>adapted</em> by Linux and Solaris developers. Finally it was
+  standardized in <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/snprintf.html">
+  POSIX</a> (issue 5 was published in 1997). At the time, that
+  meant that newer platforms would have the function, but older
+  ones (such as SunOS) would not. See for example</p>
+
+  <ul>
+    <li><a href="https://groups.google.com/forum/#!topic/comp.std.c/ZLZkV9xuQ54">
+    Historical C/stdio question?</a> in <em>comp.std.c</em>
+    (1995/06/28)</li>
+
+    <li><a href="http://www.dataguard.no/bugtraq/2000_2/0897.html">Re: WuFTPD:
+    Providing *remote* root since at least 1994</a> on
+    <em>bugTraq</em> (2000/06/28).</li>
+
+    <li><a href="https://www.ijs.si/software/snprintf/">snprintf.c
+    - a portable implementation of snprintf</a> by Mark Martinec
+    (1999, 2000).</li>
+  </ul>
+
+  <p>As you can see by referring to the page by Martinec, if
+  <code>snprintf</code> had been a good-enough solution for Lynx,
+  and I had chosen to not write one specially for porting
+  applications, I could have waited a year or two and gotten
+  someone else to write it.</p>
+
+  <p>While not suitable for use by a portable program, the
+  <code>asprintf</code> function in the GNU C library was
+  interesting because it showed that a version of
+  <code>sprintf</code> was possible with a dynamically allocated
+  output buffer. Solaris developers were slower here (finally
+  appearing in <a href="http://www.oracle.com/technetwork/articles/servers-storage-admin/solaris11-dev-186782.pdf">
+  Solaris 11</a> twelve years later):</p>
+
+  <blockquote class="code-block">
+    <p>A number of new routines are included in the Oracle Solaris
+    C library to improve familiarity with Linux and BSD operating
+    systems and help reduce the time and cost associated with
+    porting applications to <em>Oracle Solaris 11 Express</em>.
+    Examples of new routines include
+    <strong><code>asprintf()</code></strong>,
+    <code>vsprintf()</code>, <code>getline()</code>,
+    <code>strdupa()</code> and <code>strndup()</code>.</p>
+  </blockquote>
+
+  <p>It has not been standardized (as of 2016).</p>
+
+  <p>Again, <code>asprintf</code> did not do what I needed in
+  <code>lynx</code>:</p>
+
+  <ul>
+    <li><em>append</em> to an allocated string.</li>
+
+    <li>easy to port to new platforms</li>
+  </ul>
+
+  <p>Taking all of that into account, I added two functions
+  <code>HTSprintf</code> and <code>HTSprintf0</code> <a href="http://lists.nongnu.org/archive/html/lynx-dev/1998-11/msg00407.html">
+  later that year</a>. The latter creates a new string, the former
+  appends to a string. Lynx uses both:</p>
+
+  <ul>
+    <li>originally 41 <code>HTSprintf0</code>, 20
+    <code>HTSprintf</code></li>
+
+    <li>currently 388 <code>HTSprintf0</code>, 70
+    <code>HTSprintf</code></li>
+  </ul>
+
+  <p>The two are closely related: <code>HTSprintf0</code> is a
+  special case of <code>HTSprintf</code>, since it sets the
+  destination to an empty buffer and calls the latter function.
+  From the counts, you can see that <code>lynx</code> uses the more
+  general form most of the time.</p>
+
+  <p>In my initial version, I made this “portable” (not
+  relying on any non-standard function). If <code>lynx</code> is
+  built on a machine which has <code>vasprintf</code>, it will use
+  that function. One reason is that the NLS support (message files)
+  <em>may</em> use an obscure feature for plurals:</p>
+
+  <blockquote class="code-block">
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    &nbsp;&nbsp;&nbsp;&nbsp;<font color="#800000">/*<br></font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#800000">*&nbsp;If&nbsp;vasprintf()&nbsp;is&nbsp;not&nbsp;available,&nbsp;this&nbsp;works&nbsp;-&nbsp;but&nbsp;does&nbsp;not&nbsp;implement<br>
+    </font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#800000">*&nbsp;the&nbsp;POSIX&nbsp;'$'&nbsp;formatting&nbsp;character&nbsp;which&nbsp;may&nbsp;be&nbsp;used&nbsp;in&nbsp;some&nbsp;of&nbsp;the<br>
+    </font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#800000">*&nbsp;".po"&nbsp;files.<br></font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#800000">*/</font><br>
+
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>Rather than double the amount of work, I chose to use
+  <code>vasprintf</code>, which is available with Linux and the
+  BSDs. On other platforms, <code>lynx</code> uses the easily
+  ported code:</p>
+
+  <ul>
+    <li>the GNU C documentation <a href="https://www.gnu.org/software/gnulib/manual/html_node/asprintf.html">
+    phrases it differently</a>, implying that other platforms are
+    deficient.</li>
+
+    <li>the <a href="https://www.freebsd.org/cgi/man.cgi?query=sprintf&amp;apropos=0&amp;sektion=0&amp;manpath=FreeBSD+4.7-RELEASE&amp;format=html">
+    FreeBSD manual page</a> provides more useful information.</li>
+  </ul>
+
+  <p>Compiler warnings help show when the format cannot handle a
+  given data type (and the resulting printout will be incorrect).
+  Compiler warnings come into play in <code>lynx</code> with a
+  couple of troublesome data types:</p>
+
+  <dl>
+    <dt><strong><code>off_t</code></strong></dt>
+
+    <dd>
+      <p>This data type is associated with <em>file size</em>,
+      because the <code>lseek</code> function uses an offset with
+      this type when positioning a file descriptor within a file.
+      The original <code>lynx</code> developers decided that was
+      the same as <strong><code>long</code></strong> and passed the
+      filesize around — and printed it — with a format
+      for <strong><code>long</code></strong>. Times changed, and
+      machines got bigger: <code>off_t</code> can have more bits
+      than <code>long</code>. C has no predefined format for
+      printing <code>off_t</code>, but does for <code>long</code>.
+      A cast is needed, as well as definitions for printing
+      format.</p>
+
+      <p>One reason why it is so complicated is that even when
+      <strong><code>off_t</code></strong> and
+      <strong><code>long</code></strong> happen to be the same
+      size, gcc has a preference (made known via compiler warnings)
+      for the “right” type to use. The configure script
+      can easily determine the size of these types, but getting the
+      compiler to tell which are the preferred names for a given
+      size is harder.</p>
+
+      <blockquote>
+        <!--{{atr2html-->
+
+        <p style="font-family: monospace; font-size: 10pt;" class="code-block100"><font color="#800000">/*<br></font>&nbsp;<font color="#800000">*&nbsp;Printing/scanning-formats&nbsp;for&nbsp;"off_t",&nbsp;as&nbsp;well&nbsp;as&nbsp;cast&nbsp;needed&nbsp;to&nbsp;fit.<br>
+        </font> &nbsp;<font color="#800000">*/</font><br>
+        <font color="#008000">#if</font>&nbsp;<font color="#008000">defined</font>(HAVE_LONG_LONG)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(HAVE_INTTYPES_H)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(SIZEOF_OFF_T)<br>
+
+        <font color="#008000">#if</font>&nbsp;(SIZEOF_OFF_T&nbsp;==&nbsp;<strong><font color="#008080">8</font></strong>)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(PRId64)<br>
+
+        &nbsp;<br>
+        <font color="#008000">#define</font>&nbsp;PRI_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PRId64<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SCNd64<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_off_t(n)&nbsp;&nbsp;&nbsp;(<strong><font color="#008000">int64_t</font></strong>)(n)<br>
+
+        &nbsp;<br>
+        <font color="#008000">#elif</font>&nbsp;(SIZEOF_OFF_T&nbsp;==&nbsp;<strong><font color="#008080">4</font></strong>)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(PRId32)<br>
+
+        &nbsp;<br>
+        <font color="#008000">#define</font>&nbsp;PRI_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PRId32<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SCNd32<br>
+
+        &nbsp;<br>
+        <font color="#008000">#if</font>&nbsp;(SIZEOF_INT&nbsp;==&nbsp;<strong><font color="#008080">4</font></strong>)<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_off_t(n)&nbsp;&nbsp;&nbsp;(<strong><font color="#008000">int</font></strong>)(n)<br>
+
+        <font color="#008000">#elif</font>&nbsp;(SIZEOF_LONG&nbsp;==&nbsp;<strong><font color="#008080">4</font></strong>)<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_off_t(n)&nbsp;&nbsp;&nbsp;(<strong><font color="#008000">long</font></strong>)(n)<br>
+
+        <font color="#008000">#else</font><br>
+        <font color="#008000">#define</font>&nbsp;CAST_off_t(n)&nbsp;&nbsp;&nbsp;(<strong><font color="#008000">int32_t</font></strong>)(n)<br>
+
+        <font color="#008000">#endif</font><br>
+        &nbsp;<br>
+        <font color="#008000">#endif</font><br>
+        <font color="#008000">#endif</font><br>
+        &nbsp;<br>
+        <font color="#008000">#ifndef</font>&nbsp;PRI_off_t<br>
+        <font color="#008000">#if</font>&nbsp;<font color="#008000">defined</font>(HAVE_LONG_LONG)&nbsp;&amp;&amp;&nbsp;(SIZEOF_OFF_T&nbsp;&gt;&nbsp;SIZEOF_LONG)<br>
+
+        <font color="#008000">#define</font>&nbsp;PRI_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">lld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">lld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_off_t(n)&nbsp;&nbsp;&nbsp;(<strong><font color="#008000">long</font></strong>&nbsp;<strong><font color="#008000">long</font></strong>)(n)<br>
+
+        <font color="#008000">#else</font><br>
+        <font color="#008000">#define</font>&nbsp;PRI_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">ld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_off_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">ld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_off_t(n)&nbsp;&nbsp;&nbsp;(<strong><font color="#008000">long</font></strong>)(n)<br>
+
+        <font color="#008000">#endif</font><br>
+        <font color="#008000">#endif</font><br>
+        <!--atr2html}}--></p>
+      </blockquote>
+    </dd>
+
+    <dt><strong><code>time_t</code></strong></dt>
+
+    <dd>
+      <p>Since it is used far more often, one would suppose that
+      <code>time_t</code> would be less of a problem. Again, I
+      solved this with a thicket of ifdef's. But on some platforms,
+      gcc decides that <code>time_t</code> is really an
+      <code>int</code> and warns when I use a <code>%ld</code>
+      (long) format:</p>
+
+      <blockquote>
+        <!--{{atr2html-->
+
+        <p style="font-family: monospace; font-size: 10pt;" class="code-block100"><font color="#800000">/*<br></font>&nbsp;<font color="#800000">*&nbsp;Printing-format&nbsp;for&nbsp;"time_t",&nbsp;as&nbsp;well&nbsp;as&nbsp;cast&nbsp;needed&nbsp;to&nbsp;fit.<br>
+        </font> &nbsp;<font color="#800000">*/</font><br>
+        <font color="#008000">#if</font>&nbsp;<font color="#008000">defined</font>(HAVE_LONG_LONG)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(HAVE_INTTYPES_H)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(SIZEOF_TIME_T)<br>
+
+        <font color="#008000">#if</font>&nbsp;(SIZEOF_TIME_T&nbsp;==&nbsp;<strong><font color="#008080">8</font></strong>)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(PRId64)<br>
+
+        &nbsp;<br>
+        <font color="#008000">#define</font>&nbsp;PRI_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PRId64<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SCNd64<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_time_t(n)&nbsp;&nbsp;(<strong><font color="#008000">int64_t</font></strong>)(n)<br>
+
+        &nbsp;<br>
+        <font color="#008000">#elif</font>&nbsp;(SIZEOF_TIME_T&nbsp;==&nbsp;<strong><font color="#008080">4</font></strong>)&nbsp;&amp;&amp;&nbsp;<font color="#008000">defined</font>(PRId32)<br>
+
+        &nbsp;<br>
+        <font color="#008000">#define</font>&nbsp;PRI_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PRId32<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SCNd32<br>
+
+        &nbsp;<br>
+        <font color="#008000">#if</font>&nbsp;(SIZEOF_INT&nbsp;==&nbsp;<strong><font color="#008080">4</font></strong>)<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_time_t(n)&nbsp;&nbsp;(<strong><font color="#008000">int</font></strong>)(n)<br>
+
+        <font color="#008000">#elif</font>&nbsp;(SIZEOF_LONG&nbsp;==&nbsp;<strong><font color="#008080">4</font></strong>)<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_time_t(n)&nbsp;&nbsp;(<strong><font color="#008000">long</font></strong>)(n)<br>
+
+        <font color="#008000">#else</font><br>
+        <font color="#008000">#define</font>&nbsp;CAST_time_t(n)&nbsp;&nbsp;(<strong><font color="#008000">int32_t</font></strong>)(n)<br>
+
+        <font color="#008000">#endif</font><br>
+        &nbsp;<br>
+        <font color="#008000">#endif</font><br>
+        <font color="#008000">#endif</font><br>
+        &nbsp;<br>
+        <font color="#008000">#ifndef</font>&nbsp;PRI_time_t<br>
+        <font color="#008000">#if</font>&nbsp;<font color="#008000">defined</font>(HAVE_LONG_LONG)&nbsp;&amp;&amp;&nbsp;(SIZEOF_TIME_T&nbsp;&gt;&nbsp;SIZEOF_LONG)<br>
+
+        <font color="#008000">#define</font>&nbsp;PRI_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">lld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">lld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_time_t(n)&nbsp;&nbsp;(<strong><font color="#008000">long</font></strong>&nbsp;<strong><font color="#008000">long</font></strong>)(n)<br>
+
+        <font color="#008000">#else</font><br>
+        <font color="#008000">#define</font>&nbsp;PRI_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">ld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;SCN_time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"<font color="#800080">ld</font>"<br>
+
+        <font color="#008000">#define</font>&nbsp;CAST_time_t(n)&nbsp;&nbsp;(<strong><font color="#008000">long</font></strong>)(n)<br>
+
+        <font color="#008000">#endif</font><br>
+        <font color="#008000">#endif</font><br>
+        <!--atr2html}}--></p>
+      </blockquote>
+    </dd>
+  </dl>
+
+  <h4><a name="proc_cleanup_lexyacc" id="proc_cleanup_lexyacc">lex/yacc...</a></h4>
+
+  <p><em>Generated</em> code should compile with as few (or fewer)
+  warnings than normal source-code. For both <a href="https://invisible-island.net/byacc/byacc.html"><code>byacc</code></a> and <a href="https://invisible-island.net/reflex/reflex.html"><code>reflex</code></a> I have done this.
+  That is not true of <code>bison</code> and “new”
+  <code>flex</code>.</p>
+
+  <p>I use lex/flex for most of the syntax filters in <a href="https://invisible-island.net/vile/vile.html"><code>vile</code></a>. Occasionally someone
+  wants that to support “new” <code>flex</code>. In a
+  recent (July 2016) episode I made some build-fixes to make that
+  work. But as I reported in <a href="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=832973">Debian
+  #832973</a>, I preferred to not use that tool because it added
+  more than 25,000 lines of warnings to my build-logs.</p>
+
+  <h3><a name="proc_builds" id="proc_builds">Routine
+  Builds</a></h3>
+
+  <p>I started writing build-scripts when I started working on
+  programs that took more than a minute or two to compile. For
+  example, in 1996 I wrote this <code>build-x</code> script:</p>
+
+  <blockquote>
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;" class="code-block"><font color="#800000">#!/bin/sh</font><br>
+    <font color="#008080">WD</font>=<strong><em><font color="#800000">`</font></em></strong><strong><font color="#000080">pwd</font></strong><strong><em><font color="#800000">`</font></em></strong><br>
+    <font color="#008080">LEAF</font>=<strong><em><font color="#800000">`</font></em></strong>basename&nbsp;<font color="#008080">$WD</font><strong><em><font color="#800000">`</font></em></strong><br>
+    <strong><font color="#000080">if</font></strong>&nbsp;[&nbsp;<font color="#008080">$LEAF</font>&nbsp;=&nbsp;xc&nbsp;];<strong><font color="#000080">then</font></strong><br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;head&nbsp;<strong><font color="#008080">-1</font></strong>&nbsp;programs/Xserver/hw/xfree86/CHANGELOG&nbsp;|sed&nbsp;-e&nbsp;<font color="#800080">'s/^/**&nbsp;/'</font>&nbsp;&gt;make.out<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong><font color="#000080">cat</font></strong>&nbsp;&gt;&gt;make.out&nbsp;<font color="#800080">&lt;&lt;EOF</font><font color="#800080"><br>
+
+    **&nbsp;tree:&nbsp;</font><strong><em><font color="#800000">`</font></em></strong><strong><font color="#000080">pwd</font></strong><strong><em><font color="#800000">`</font></em></strong><font color="#800080"><br>
+    **&nbsp;host:&nbsp;</font><strong><em><font color="#800000">`</font></em></strong>partition<strong><em><font color="#800000">`</font></em></strong><font color="#800080"><br>
+
+    EOF</font><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run&nbsp;nice&nbsp;make-out&nbsp;World<br>
+
+    <strong><font color="#000080">else</font></strong><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong><font color="#000080">echo</font></strong>&nbsp;<font color="#800080">'**&nbsp;You&nbsp;must&nbsp;be&nbsp;in&nbsp;the&nbsp;xc-directory'</font><br>
+
+    <strong><font color="#000080">fi</font></strong><br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>Later, I found that it helped to construct build-scripts which
+  knew about the specific compilers available on different machines
+  — so that I could verify that my programs built correctly
+  with each compiler. I collected logs from these builds, starting
+  in 1997 (both ncurses and lynx). However, these collections were
+  not <em>systematic</em>; I did not at first store the logs in a
+  source repository to allow comparison, but settled for a record
+  of the “last good build” to use in trouble-shooting
+  the configure scripts.</p>
+
+  <p>There were a few exceptions: as part of my release process for
+  <code>lynx</code> I kept the logfile from a test-build on the
+  server at ISC which hosted lynx. I started that in December
+  1997.</p>
+
+  <p>But for the other programs: my <em>versioned</em> archives for
+  ncurses build-logs start in July 2006. Other programs followed,
+  as well as more elaborate (and systematic) build-scripts. For an
+  overview of those, see my discussion of <a href="https://invisible-island.net/scripts/readme.html#build_scripts">sample build-scripts</a>. As
+  of September 2016, I have 218 scripts for building programs, in
+  various configurations. I collect the logs from these, and
+  compare against the previous build — and look for new
+  problems such as compiler warnings.</p>
+
+  <h3><a name="proc_packaging" id="proc_packaging">Packaging</a></h3>
+
+  <p>I track build-logs to avoid introducing problems for others
+  who build my programs (either packagers or individual
+  developers). None of my machines run continuously, and a
+  build-server would make little sense (because I have to test on
+  many platforms), so a set of scripts provides a workable
+  solution.</p>
+
+  <p>Packagers give the most immediate feedback when there is a
+  problem building ncurses or xterm. They typically use a
+  particular set of machines, with build-servers. Packaging and
+  systematic builds go together.</p>
+
+  <p>In a few cases, others contributed scripts for building my
+  programs and creating packages:</p>
+
+  <ul>
+    <li><a href="https://invisible-island.net/cdk/CHANGES.html#t20020430">Cdk (2002)</a></li>
+
+    <li><a href="https://invisible-island.net/vile/CHANGES.html#v9_3d">vile (2002)</a></li>
+  </ul>
+
+  <p>but this was not done systematically. Also (until around the
+  time that I got involved in packaging), Linux packagers did not
+  as a rule provide source repositories for their
+  <em>packaging</em> scripts from which one could get useful
+  information about the reasons for package changes. The BSD ports
+  on the other hand provide historical information but are strongly
+  dependent on the <em>structure</em> within which a port is
+  built.</p>
+
+  <p>I began packaging all of my programs in 2010 when I started
+  using virtual machines for the bulk of my development. Most of
+  these packages use either "deb" (Debian and derived
+  distributions) or "rpm" (Red Hat, OpenSUSE and others). I wrote
+  (and am still writing) a set of scripts to manage this. Rather
+  than adding onto an existing <em>upstream</em> source and adding
+  version information to that source, my packaging scripts work
+  within the existing structure and use my existing versioning
+  scheme.</p>
+
+  <p>During this process, I finally got around to <a href="https://invisible-island.net/autoconf/my-autoconf/CHANGES.html#t20121109">dropping
+  support</a> for K&amp;R compilers in the configure script checks
+  for the C compiler. The <code>unproto</code> program was of
+  course long unused.</p>
+
+  <p>For each program <code><em>XXX</em></code>:</p>
+
+  <ul>
+    <li><code>bump-<em>XXX</em></code> uses a program-specific
+    naming convention for the working directory to determine the
+    target version and updates version information in the program's
+    files to match the target. It also makes/updates an entry in
+    the <code>changelog</code> file for my Debian
+    test-package.</li>
+
+    <li><code>clean-<em>XXX</em></code> uses the makefile rule for
+    cleaning a working directory, removing all <em>generated</em>
+    files.</li>
+
+    <li><code>release-<em>XXX</em></code> cleans a working
+    checked-out directory for a given package <em>XXX</em>,
+    verifies that administrative stuff (such as copyright dates)
+    are in order, and builds/signs a tarball suitable for upload or
+    test-builds. These scripts also extract the change list for
+    later use in email.</li>
+
+    <li><code>build-all-<em>XXX</em></code> does platform-specific
+    test builds, and makes packages.</li>
+
+    <li><code>upload-<em>XXX</em></code> uses the files prepared by
+    <code>release-<em>XXX</em></code>, putting those on my ftp
+    site. It prepares the email using text previously prepared,
+    along with a list of files on the ftp site with their
+    URLs.</li>
+  </ul>
+
+  <p>While developing a new set of changes, I “release”
+  several updates for packaging and make test-builds, comparing the
+  build-logs to the previous release to eliminate new compiler
+  warnings. The build scripts actually invoke several scripts
+  depending on the availability of packaging tools and
+  cross-compilers. Each produces a log file.</p>
+
+  <p>As of September 2016, I have 77 <em>release</em> scripts,
+  including 22 which generate documentation for my website. I have
+  not written scripts for everything: I have 14 programs in my
+  to-do list for scripting.</p>
+
+  <h2><a name="problems" id="problems">Problems</a></h2>
+
+  <h3><a name="problem_work" id="problem_work">at work...</a></h3>
+
+  <p>Paid work, of course.</p>
+
+  <p>When I first used <code>lint</code> in 1986, I was working
+  with another developer. I pointed out that including
+  <code>&lt;string.h&gt;</code> in a program would give the correct
+  return-type for <code>strcpy</code>, making it unnecessary to use
+  a cast:</p>
+
+  <blockquote>
+    <pre class="code-block">char *p = (char *)strcpy(target, source);
+</pre>
+  </blockquote>
+
+  <p>He refused to make the change, giving as his reason:</p>
+
+  <blockquote>
+    <pre class="code-block"><em>My supervisor on another job told me to do it this way.</em>
+</pre>
+  </blockquote>
+
+  <p>I found <code>lint</code> useful anyway. It would tell me
+  about cases where I made a typo, using <code>fprintf</code> where
+  I meant <code>printf</code>, e.g., this error</p>
+
+  <blockquote>
+    <pre class="code-block">fprintf("Hello World!\n");
+</pre>
+  </blockquote>
+
+  <p>The alternative (without <code>lint</code>) was a core
+  dump.</p>
+
+  <p>At the time I wrote the <code>gcc-normal</code> and
+  <code>gcc-strict</code> scripts, I found a use for
+  <code>gcc</code> solely for its <em>warnings</em>. This helped me
+  to improve the code quality of a fairly large system which had
+  been written in K&amp;R C, retrofitted to some POSIX features,
+  and ported to many platforms. I used <code>gcc</code> warnings to
+  flag places where</p>
+
+  <ul>
+    <li>the functions were not prototyped, or</li>
+
+    <li>the function parameter types did not match</li>
+  </ul>
+
+  <p>I kept track of my progress by keeping the build-logs in the
+  source repository, and measuring the daily rate of change using
+  <a href="https://invisible-island.net/c_count/c_count.html">c_count</a> and <a href="https://invisible-island.net/diffstat/diffstat.html">diffstat</a> in a cron job. Due to its
+  lack of warranty, we did not use it for the end product.</p>
+
+  <p>As part of the process, I made the cron job send everyone on
+  the development team a daily report of the <code>diffstat</code>.
+  That was ... not popular. I stopped the email. But I kept on with
+  the compiler warnings, converting the programs to ANSI C.</p>
+
+  <p>Seeing that a few developers made a majority of the changes, I
+  discussed the compiler warnings with those people. Some liked the
+  idea. One developer, however, got up immediately and left the
+  office when I sat down next to him. When I caught up with him, he
+  had not calmed down, saying:</p>
+
+  <blockquote>
+    <pre class="code-block">I know what you're trying to do, and I think it's good.
+But I just can't stand it.
+</pre>
+  </blockquote>
+
+  <p>So not everyone liked fixing compiler warnings. This developer
+  was fairly productive, but liked to work alone in the evenings
+  when others were not around. One morning I was chatting with
+  another developer when I happened to notice a hole in the wall,
+  perhaps 8-10 inches in diameter. I remarked that I hadn't seen
+  that before. The person I was talking to remarked that (the other
+  developer) had done it. "How…", I began. He replied that
+  (the other) wore boots. Enough said.</p>
+
+  <h3><a name="problem_gcc" id="problem_gcc">gcc</a></h3>
+
+  <p>During the last year or so that I was at the Software
+  Productivity Consortium, I spent some time reviewing and
+  suggesting improvements to programs that I found on the Internet.
+  One of those was gcc. In its bootstrap, it compiled a program
+  named “enquire” which it used to determine the sizes
+  of various datatypes. That in particular had a lot of compiler
+  warnings (because the code <em>ignored</em> the difference
+  between signed and unsigned values), but other parts of gcc
+  needed work as well.</p>
+
+  <p>I sent a patch for gcc (which fixed about 5,000 warnings) to
+  gcc's developers (probably early 1993). Richard Stallman
+  responded, a little oddly I thought: he asked what I wanted them
+  to <em>do</em> with the patch. I replied that I wanted them to
+  use it to improve the program. I heard no more. If they did
+  incorporate any of the fixes, there was no record of that in
+  later versions.</p>
+
+  <p>I kept that in mind, and sent no more fixes to gcc's
+  developers.</p>
+
+  <p>Expanding a little on my remarks <a href="http://stackoverflow.com/questions/29663744/why-isnt-wstrict-prototypes-on-by-default">
+  here</a>, quite a while ago, Richard Stallman sent a message to
+  mailing list explaining that others found warnings useful, but
+  that he did not. Likely that had some influence on the default
+  compiler warnings as well as the choice of options which comprise
+  <strong><code>-Wall</code></strong>:</p>
+
+  <blockquote>
+    <pre class="code-block">Date: Thu, 2 Sep 1999 23:19:27 -0400
+Message-Id: &lt;gnusenet199909030319.XAA08701@psilocin.gnu.org&gt;
+From: Richard Stallman &lt;rms@gnu.org&gt;
+To: gnu-prog@gnu.org
+Subject: On using -Wall in GCC
+Reply-to: rms@gnu.org
+Resent-From: info-gnu-prog-request@gnu.org
+
+Status: RO
+Content-Length: 841
+Lines: 17
+
+I'd like to remind all GNU developers that the GNU Project
+does not urge or recommend using the GCC -Wall option.
+
+When I implemented the -Wall option, I implemented every warning that
+anyone asked for (if it was possible).  I implemented warnings that
+seemed useful, and warnings that seemed silly, deliberately without
+judging them, to produce a feature which is at the upper limit of
+strictness.
+
+If you want such strict criteria for your programs, then -Wall is for
+you.  But changing code to avoid them is a lot of work.  If you don't
+feel inclined to do that work, please don't let anyone else pressure
+you into using -Wall.  If people say they would like to use it, you
+don't have to listen.  They're asking you to do a lot of work.
+If you don't feel it is useful, you don't have to do it.
+
+I never use -Wall myself.
+</pre>
+  </blockquote>
+
+  <p>In gcc-2.7.2.3's ChangeLog.4 file, the
+  <code>-Wstrict-prototypes</code> option (though present in gcc
+  1.42 in January 1992) is first mentioned as being distinct from
+  <code>-Wall</code>:</p>
+
+  <blockquote>
+    <pre class="code-block">Thu Nov 21 15:34:27 1991  Michael Meissner  (meissner at osf.org)
+
+        * gcc.texinfo (warning options): Make the documentation agree with
+        the code, -Wstrict-prototypes and -Wmissing-prototypes are not
+        turned on via -Wall; -Wnoparenthesis is now spelled
+        -Wno-parenthesis.
+        (option header): Mention that -W options take the no- prefix as well
+        as -f options.
+</pre>
+  </blockquote>
+
+  <p>Also, in documentation (gcc.info-3), it appeared in the
+  section begun by this paragraph:</p>
+
+  <blockquote>
+    <pre class="code-block">   The remaining <strong>`-W...'</strong> options are not implied by <strong>`-Wall</strong>' because
+they warn about constructions that we consider reasonable to use, on
+occasion, in clean programs.
+</pre>
+  </blockquote>
+
+  <p>The option itself was documented like this:</p>
+
+  <blockquote>
+    <pre class="code-block"><strong>`-Wstrict-prototypes'</strong>
+     Warn if a function is declared or defined without specifying the
+     argument types.  (An old-style function definition is permitted
+     without a warning if preceded by a declaration which specifies the
+     argument types.)
+</pre>
+  </blockquote>
+
+  <p>The reason for the option being separate is easy to
+  understand, given the context: this was only a few years after C
+  had been standardized, and few programs had been converted to
+  ANSI C. gcc had other options to help with this, e.g.,
+  <code>-Wtraditional</code>.</p>
+
+  <p>Developers of complex tools have to keep in mind
+  compatibility. Moving options between categories is guaranteed to
+  break some people's build scripts. For instance, gcc also has</p>
+
+  <blockquote>
+    <pre class="code-block"><strong>`-Werror'</strong>
+     Make all warnings into errors.
+</pre>
+  </blockquote>
+
+  <p>which some people use regularly. Needlessly turning on
+  warnings that developers had earlier chosen to not use and
+  stopping the compile as a result is not a way to maintain
+  compatibility.</p>
+
+  <p>For more context on <code>-Wall</code> versus
+  <code>-Wstrict-prototypes</code> it helps to read the entire
+  section rather than selectively pick out text. The last paragraph
+  in current documentation for <code>-Wall</code> for instance
+  points out that <code>-Wall</code> is not comprehensive, and that
+  ultimately the reason for inclusion was a matter of judgement (as
+  in the original documentation):</p>
+
+  <blockquote>
+    <p class="code-block">Note that some warning flags are not
+    implied by <strong>-Wall</strong>. Some of them warn about
+    constructions that users generally do not consider
+    questionable, but which occasionally you might wish to check
+    for; others warn about constructions that are necessary or hard
+    to avoid in some cases, and there is no simple way to modify
+    the code to suppress the warning. Some of them are enabled by
+    <strong>-Wextra</strong> but many of them must be enabled
+    individually.</p>
+  </blockquote>
+
+  <p>As for whose judgement that was – it would be the
+  original developers of gcc around 1990.</p>
+
+  <h3><a name="problem_mawk" id="problem_mawk">mawk</a></h3>
+
+  <p>Around the same time (1993/1994), I sent Mike Brennan
+  suggested changes for <a href="https://invisible-island.net/mawk/mawk.html">mawk</a>. Some of
+  those were prompted by <code>lint</code> warnings. Those he
+  rejected as unnecessary. For example, one of the diffs would have
+  begun like this:</p>
+
+  <blockquote class="code-block">
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <span class="number">---</span><span class="ident2">&nbsp;execute.c.orig&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1996-02-01&nbsp;00:05:42.000000000&nbsp;-0500<br>
+    </span> <span class="number">+++</span><span class="ident2">&nbsp;execute.c&nbsp;&nbsp;&nbsp;2016-08-11&nbsp;18:30:56.726609195&nbsp;-0400<br>
+    </span> <span class="number">@@</span><span class="ident2">&nbsp;-219,7&nbsp;+219,7&nbsp;@@<br></span>&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+
+    &nbsp;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(1)<br>
+    -<span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch&nbsp;(cdp++-&gt;op)<br>
+    </span> +<span class="preproc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch&nbsp;((cdp++)-&gt;op)<br>
+    </span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+    &nbsp;<br>
+    &nbsp;/*&nbsp;HALT&nbsp;only&nbsp;used&nbsp;by&nbsp;the&nbsp;disassemble&nbsp;now&nbsp;;&nbsp;this&nbsp;remains<br>
+
+    <span class="number">@@</span><span class="ident2">&nbsp;-234,13&nbsp;+234,13&nbsp;@@<br></span>&nbsp;<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;_PUSHC:<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inc_sp()&nbsp;;<br>
+
+    -<span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cellcpy(sp,&nbsp;cdp++-&gt;ptr)&nbsp;;<br>
+    </span> +<span class="preproc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cellcpy(sp,&nbsp;(cdp++)-&gt;ptr)&nbsp;;<br>
+    </span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break&nbsp;;<br>
+
+    &nbsp;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;_PUSHD:<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inc_sp()&nbsp;;<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sp-&gt;type&nbsp;=&nbsp;C_DOUBLE&nbsp;;<br>
+
+    -<span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sp-&gt;dval&nbsp;=&nbsp;*(double&nbsp;*)&nbsp;cdp++-&gt;ptr&nbsp;;<br>
+    </span> +<span class="preproc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sp-&gt;dval&nbsp;=&nbsp;*(double&nbsp;*)&nbsp;(cdp++)-&gt;ptr&nbsp;;<br>
+    </span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break&nbsp;;<br>
+
+    &nbsp;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;_PUSHS:<br>
+
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>Interestingly enough, gcc has nothing to say about
+  <em>that</em>. Compiling <code>execute.c</code> with
+  <code>gcc-normal</code> gives me 40 warnings, and with
+  <code>gcc-strict</code> 84 warnings. So there is something to be
+  said, even without <code>lint</code>.</p>
+
+  <p>After Brennan released mawk 1.3.3 in November 1996, there was
+  no maintainer except for packagers until I adopted it in
+  September 2009. I noticed this because one of the packagers made
+  an inappropriate change involving <a href="https://invisible-island.net/byacc/byacc.html">byacc</a> and <a href="https://invisible-island.net/mawk/mawk.html">mawk</a>. Debian had accumulated 8 patches; I
+  incorporated those and set about making the normal sort of
+  improvements: compiler warnings, portability fixes and
+  bug-reports.</p>
+
+  <p>One of the bug-reports dealt with <code>gsub</code> (Debian
+  <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=158481">#158481</a>).
+  Brennan had written this to <em>recur</em> each time it made a
+  change. I made an initial fix to avoid the recursion in <a href="https://invisible-island.net/mawk/CHANGES.html#t20101207">December 2010</a>, but it was
+  slow. Returning to this after some time, I was in the middle of
+  making a plan to deal with this in August 2014 when I received
+  mail from Brennan.</p>
+
+  <blockquote>
+    <pre class="code-block">It was always my intention to return to mawk and fix some mistakes.
+Never intended to wait 15+ years, but now I am going to do it.
+
+I hope you want to cooperate with me.   If so, let's figure out how we both
+work on mawk.  If not, let's figure out how to separate.
+</pre>
+  </blockquote>
+
+  <p>I recalled his attitude toward <code>lint</code> and compiler
+  warnings, but agreed, saying:</p>
+
+  <blockquote>
+    <pre class="code-block">ok.  I have some changes past the last release/snapshot (working off/on, since
+there are other programs...).  At the moment I was mulling over how to measure
+performance with/without -Wi for
+
+        https://code.google.com/p/original-mawk/issues/detail?id=12
+
+so... I'll put that aside for the moment, and see about adding your patch,
+resolving any rejects and then making a snapshot available for discussion.
+
+(I'm not currently working in the area you mentioned - was working on some
+simple stuff while thinking how to revise gsub - intending to make a public
+release once _that_ is done).
+</pre>
+  </blockquote>
+
+  <p>That lasted 5 weeks, ending because we were not in agreement
+  regarding compiler warnings. Here is one of my replies:</p>
+
+  <blockquote>
+    <pre class="code-block">| What requires changes? Compiles -Wall without a peep. Are you adding
+
+gcc -Wall is sub-minimal, actually.  To see minimal warnings, use the configure
+script's "--enable-warnings" option.  For development work (as opposed to
+warnings which some packager might consider using), I use the gcc-normal and
+gcc-stricter scripts here:
+
+http://invisible-island.net/scripts/readme.html#build_scripts
+</pre>
+  </blockquote>
+
+  <p>Also, Mike regarded the no-leaks code as unnecessary,
+  proposing a change to remove it. His parting message in September
+  was:</p>
+
+  <blockquote>
+    <pre class="code-block">I've decided to work on something else.
+Please discard the code I sent you on 20140908.
+Your gsub3 works just as well as my gsub, so use you own code not mine. It
+will be easier to maintain code you wrote yourself.
+Also, remove me from  2014 in the version display.
+</pre>
+  </blockquote>
+
+  <p>In August 2016, Mike Brennan posted to <em>comp.lang.awk</em>
+  his announcement of a <a href="https://groups.google.com/forum/?fromgroups#!topic/comp.lang.awk/rmDcVXFbt8E">
+  beta for mawk 2.0</a>, stating in the <em>README</em> file:</p>
+
+  <blockquote>
+    <pre class="code-block">In my absence, there have been other developers that produced mawk 1.3.4-<em>xxx</em>.
+I started from 1.3.3 and there is no code from the 1.3.4 developers in
+this mawk, because their work either did not address my concerns or
+inadequately addressed my concerns or, in some cases,
+was wrong.  I did look at the
+bug reports and fixed those that applied to 1.3.3.
+I did switch to the FNV-1a hash function as suggested in a bug report.
+</pre>
+  </blockquote>
+
+  <p>From the discussion above, the reader can see that the "in
+  some cases, was wrong" refers to compiler warnings and checking
+  for memory leaks. Because Brennan expressed no other concerns
+  during five weeks, likely the entire sentence is focused on that
+  one issue. For the record,</p>
+
+  <ul>
+    <li>Brennan's 1.9.9.4 beta produces 299 warnings with
+    <code>gcc-normal</code> and fails to compile using
+    <code>gcc-strict</code> (due to an inadequate configure
+    script).</li>
+
+    <li>my <a href="https://invisible-island.net/mawk/CHANGES.html#t20160615">1.3.4-20160615</a> snapshot
+    produces no warnings with <code>gcc-normal</code> and 16
+    warnings using <code>gcc-strict</code> (due to an unavoidable
+    use of pointers to functions).</li>
+  </ul>
+
+  <h3><a name="problem_purify" id="problem_purify">purify</a></h3>
+
+  <p>The Usenet thread <a href="https://groups.google.com/forum/#!searchin/comp.windows.x/%22XM$20and$20purify%22|sort:relevance/comp.windows.x/IlfPCfxj3N8/OE1W41MxC_oJ">
+  X11, Xt, Xm and purify</a> on <em>comp.windows.x</em> in late
+  1998 illustrates the differences of opinion between developers
+  and vendors.</p>
+
+  <h3><a name="problem_snprintf" id="problem_snprintf">snprintf</a></h3>
+
+  <p>Not all warnings are beneficial. When they are overdone, they
+  are detrimental. Consider <code>snprintf</code> and its followups
+  <a href="http://man.openbsd.org/strlcpy"><code>strlcpy</code></a>,
+  <code>strlcat</code>.</p>
+
+  <p>In my first encounter with these in 2000, it was to modify the
+  names of the <a href="https://invisible-island.net/ded/td_lib/CHANGES.html#t20001202"><code>strlcpy</code>
+  function</a> which I wrote in <a href="https://invisible-island.net/ded/td_lib/CHANGES.html#t19900627_u5">1990</a> to avoid
+  conflict with the latter (one of several cases where BSD header
+  files included non-standard functions without any ifdef's to
+  avoid namespace pollution).</p>
+
+  <p>My function lowercases its argument. The OpenBSD function
+  attempts to remedy the ills of the world by offering a better
+  version of <code>strncpy</code>. Conveniently enough, there is an
+  <code>strncat</code> variant. There are a few drawbacks to using
+  the standard <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/strncpy.html">
+  <code>strncpy</code></a> and <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/strncat.html">
+  <code>strncat</code></a>:</p>
+
+  <ul>
+    <li>
+      <p>If the actual (null-terminated) source string is shorter
+      than specified, <code>strncpy</code> appends null characters
+      to fill the destination to the specified length.</p>
+    </li>
+
+    <li>
+      <p>If the actual source string is longer than specified,
+      <code>strncpy</code> does not supply a terminating null
+      character on the destination.</p>
+    </li>
+
+    <li>
+      <p>While <code>strncat</code> is not documented with either
+      of these problems, there is the possibility that users might
+      expect it to be consistent with <code>strncpy</code> by using
+      the <em>total size</em> of the destination buffer rather than
+      the <em>unused size</em> of the destination.</p>
+    </li>
+  </ul>
+
+  <p>Those are mentioned in the paper <a href="https://www.sudo.ws/todd/papers/strlcpy.html"><em>strlcpy and
+  strlcat - consistent, safe, string copy and
+  concatenation</em></a> by Miller and de Raadt (<a href="https://www.usenix.org/legacy/event/usenix99/full_papers/millert/millert.pdf">USENIX
+  99</a>). But none of that was an original observation by the
+  OpenBSD developers. Just from my own experience, while
+  <code>strcpy</code>, etc., are <em>used</em> in the source code
+  (usually correctly), dynamically allocated strings are the way to
+  go:</p>
+
+  <ul>
+    <li>
+      <p id="ded_dyn_string">For my directory editor <a href="https://invisible-island.net/ded/ded.html"><code>ded</code></a> I wrote <a href="https://invisible-island.net/ded/td_lib/CHANGES.html#t19871201"><code>stralloc</code></a>
+      in 1987 to replace cases where one might use
+      <code>strdup</code> (reducing memory by allocating one copy)
+      and <a href="https://invisible-island.net/ded/td_lib/CHANGES.html#t19920206_u1"><code>dyn_string</code></a>
+      in 1992 to allocate strings.</p>
+    </li>
+
+    <li>
+      <p>In the text editor vile (vi like emacs), the
+      <code>strmalloc</code> function (equivalent to
+      <code>strdup</code>) dates from 1991. It has a replacement
+      for <code>strncpy</code> (fixing the string-terminator issue)
+      dating from 1994. However, starting with my changes for
+      <a href="https://invisible-island.net/vile/CHANGES.html#v3_32"><code>TBUFF</code></a> in
+      1993, <code>vile</code> has generally used dynamically
+      allocated strings except for special cases such as
+      buffer-names.</p>
+    </li>
+
+    <li>
+      <p>In the web browser <a href="https://lynx.invisible-island.net/">lynx</a>, it has used
+      dynamically allocated strings since 1995, with some holdouts
+      for fixed buffers related to terminal width and filename
+      length. My work on <a href="https://invisible-island.net/personal/lint-tools.html#proc_cleanup_lynx"><code>HTSprintf</code></a> starting in
+      1998 reduced those special cases. However — read this
+      thread <em><a href="http://lists.nongnu.org/archive/html/lynx-dev/1998-05/msg00217.html">
+      lynx-dev Lynx buffer mismanagement</a></em> — to be
+      reminded of the difference between work and criticism,
+      constructive or otherwise.</p>
+
+      <p>Quoting from the paper by Miller and de Raadt,</p>
+
+      <blockquote>
+        <p class="code-block">We plan to replace occurrences of
+        <code>strncpy()</code> and <code>strncat()</code> with
+        <code>strlcpy()</code> and <code>strlcat()</code> in
+        OpenBSD where it is sensible to do so.</p>
+      </blockquote>
+
+      <p><code>Lynx</code> was in OpenBSD <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/gnu/usr.bin/lynx/">
+      <strong>base</strong></a> from March 1998 until July 2014 (16
+      years). OpenBSD developers did not modify any of those calls
+      in <code>lynx</code>. Rather, they played a minor role in
+      reporting bugs and making small fixes. For instance,
+      comparing the last labeled release (2.8.7rel.2 and the
+      OPENBSD_5_5_BASE), shows 21 files differing. But 15 of those
+      files are unrelated to <em>fixes</em>, but rather overlooking
+      deleted files, removing the help-message from the configure
+      script, OpenBSD-specific URLs, etc. Here is a diffstat for
+      the files with fixes:</p>
+
+      <blockquote>
+        <p style="font-family: monospace; font-size: 10pt;">
+        &nbsp;WWW/Library/Implementation/HTNews.c&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;<font class="deleted">-</font><br>
+
+        &nbsp;WWW/Library/Implementation/dtd_util.c&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;<font class="deleted">-</font><br>
+
+        &nbsp;configure.in&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;<font class="added">++++</font><font class="deleted">-</font><br>
+
+        &nbsp;src/HTML.c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;42&nbsp;<font class="added">+</font><font class="deleted">---------------------------------</font><br>
+
+        &nbsp;src/LYJump.c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;<font class="deleted">-</font><br>
+
+        &nbsp;src/makefile.in&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;6&nbsp;<font class="added">++</font><font class="deleted">--</font><br>
+
+        &nbsp;6&nbsp;files&nbsp;changed,&nbsp;13&nbsp;insertions(+),&nbsp;48&nbsp;deletions(-)<br>
+        </p>
+      </blockquote>
+
+      <p>That is about 50 lines changed in a program with 180
+      thousand lines of C code. Finally <code>lynx</code> was
+      removed from <strong>base</strong> to allow more frequent
+      updates via <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/lynx/">OpenBSD
+      ports</a> (see <a href="https://www.mail-archive.com/ports@openbsd.org/msg63904.html">
+      mailing list thread</a>).</p>
+    </li>
+  </ul>
+
+  <p>According to the CVS history, those functions were added in
+  <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strlcat.c?rev=1.1&amp;content-type=text/x-cvsweb-markup">
+  1998</a>, with substantial changes going into <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strlcat.c?rev=1.4&amp;content-type=text/x-cvsweb-markup">
+  2001</a>. Later (July 2003) after <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strlcat.c?rev=1.10&amp;content-type=text/x-cvsweb-markup">
+  relicensing</a> the replacments, these standard functions were
+  modified to force the linker to warn about their use:</p>
+
+  <ul>
+    <li><a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdio/sprintf.c?rev=1.9&amp;content-type=text/x-cvsweb-markup">
+    sprintf</a> (use <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdio/snprintf.c">
+    snprintf</a>)</li>
+
+    <li><a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strcat.c?rev=1.6&amp;content-type=text/x-cvsweb-markup">
+    strcat</a> (use <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strlcat.c">
+    strlcat</a>)</li>
+
+    <li><a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strcpy.c?rev=1.6&amp;content-type=text/x-cvsweb-markup">
+    strcpy</a> (use <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/strlcpy.c">
+    strlcpy</a>)</li>
+  </ul>
+
+  <p>The same was done later when incorporating these functions
+  (though on OpenBSD the wide-character functions are little
+  used):</p>
+
+  <ul>
+    <li><a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/wcscpy.c?rev=1.3&amp;content-type=text/x-cvsweb-markup">
+    wcscpy</a> (use <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/wcslcpy.c?rev=1.4&amp;content-type=text/x-cvsweb-markup">
+    wcslcpy</a>)</li>
+
+    <li><a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/wcsncat.c?rev=1.2&amp;content-type=text/x-cvsweb-markup">
+    wcsncat</a> (use <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/wcslcat.c?rev=1.1&amp;content-type=text/x-cvsweb-markup">
+    wcslcat</a>)</li>
+
+    <li><a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/stpcpy.c?rev=1.1&amp;content-type=text/x-cvsweb-markup">
+    stpcpy</a> (do not use)</li>
+  </ul>
+
+  <p>On the other hand, there are no analogously improved versions
+  of <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdio/scanf.c">
+  <code>scanf</code></a> or <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdio/sscanf.c">
+  <code>sscanf</code></a>, etc., and there is no warning about
+  their use. The developers have been inconsistent.</p>
+
+  <p>I left <code>ncurses</code> out of the list. The paper
+  mentioned <code>ncurses</code>, so some discussion is needed.</p>
+
+  <ul>
+    <li>
+      <p>What I notice chiefly about the paper is that it gives no
+      <em>interesting</em> numbers. The benchmarks for single
+      functions are (as the paper admits) contrived to show an
+      advantage to <code>strlcpy</code>.</p>
+    </li>
+
+    <li>
+      <p>Single functions are not interesting because they do not
+      show whole-program performance.</p>
+    </li>
+
+    <li>
+      <p>The paper actually mentions one case, stating that
+      changing a single function was enough to improve performance
+      of <code>tic</code> by a factor of four. That refers to this
+      item in <a href="https://invisible-island.net/ncurses/NEWS.html#t990306">1999/03/06</a>:</p>
+
+      <blockquote>
+        <pre class="code-block">        + recode functions in name_match.c to avoid use of strncpy, which
+          caused a 4-fold slowdown in tic (cf: <a href="https://invisible-island.net/ncurses/NEWS.html#t980530">980530</a>).
+</pre>
+      </blockquote>
+
+      <p>However in the linked item, Miller's patch replaced two
+      occurrences of <code>strcpy</code> by <code>strncpy</code>
+      (which would slow the program down on <em>that</em> change.
+      The "4-fold" is probably a quote from someone's email by the
+      way.</p>
+    </li>
+
+    <li>
+      <p>Rather than focus on speedup of <em>single</em> functions,
+      useful measurements are based on <em>sets</em> of operations,
+      e.g., using <a href="https://invisible-island.net/ncurses/tctest.html">tctest</a> or
+      <a href="https://invisible-island.net/vttest/vttest.html">vttest</a> in combination with
+      profiling tools.</p>
+    </li>
+
+    <li>
+      <p>Finally, the paper gives no <em>numbers</em> regarding the
+      number of programs analyzed, the number of serious problems
+      found relative to the total number of uses. Without numbers
+      that whole aspect of the paper falls down because there are
+      no measurements, nothing to compare with other research.</p>
+    </li>
+  </ul>
+
+  <p>Todd Miller provided several fixes for <code>ncurses</code>
+  but none of those dealt with a buffer overflow. There was one
+  report of a buffer overflow — on the <a href="http://lists.gnu.org/archive/html/bug-ncurses/2000-10/msg00000.html">
+  <em>bug-ncurses</em></a> mailing list in October 2000, and on
+  <a href="https://marc.info/?t=97112695200008&amp;r=1&amp;w=4"><em>freebsd-security</em></a>
+  a week later (after I had made fixes in <a href="https://invisible-island.net/ncurses/NEWS.html#t20001007">2000/10/07</a>). I addressed that
+  by doing what I had done with my directory editor (see <a href="https://invisible-island.net/personal/lint-tools.html#ded_dyn_string">above</a>). Incidentally there was a
+  <em>different</em> report earlier that year (<a href="https://marc.info/?l=freebsd-security&amp;m=97118673419702&amp;w=4">mentioned</a>
+  in the FreeBSD discussion by the person who had reported it),
+  against <strong>1.8.6</strong> which was then about 5 years out
+  of date, having been released in <a href="https://invisible-island.net/ncurses/ncurses-license.html#ncurses_1_8_6">October
+  1994</a>.</p>
+
+  <p>The changes in OpenBSD in 2003 pointed out that
+  <code>ncurses</code> still used <code>strcpy</code> and
+  <code>strcat</code>, e.g., to copy to a newly allocated chunk of
+  memory with the correct size.</p>
+
+  <p>For example, linking the <code>ncurses</code> C++ demo
+  produces these messages:</p>
+
+  <blockquote>
+    <pre class="code-block120">linking demo
+../lib/libncurses++.a(cursslk.o)(.text+0xde): In function `Soft_Label_Key_Set::Soft_Label_Key::operator=(char*)':
+../c++/cursslk.cc:46: warning: strcpy() is almost always misused, please use strlcpy()
+../lib/libncurses.so.6.0: warning: strcat() is almost always misused, please use strlcat()
+../obj_s/demo.o(.text+0xbf): In function `TestApplication::init_labels(Soft_Label_Key_Set&amp;) const':
+./cursesf.h:64: warning: sprintf() is often misused, please use snprintf()
+</pre>
+  </blockquote>
+
+  <p>Like <code>lynx</code>, <code>ncurses</code> was then —
+  and still is — part of OpenBSD <strong>base</strong>. In
+  that case, Todd Miller globally substituted to use the
+  <code>strlcpy</code>, etc., in 2003 (in preparation for the
+  change to warn about <code>strcpy</code>, etc.). As of September
+  2016, OpenBSD CVS has ncurses 5.7 (released in <a href="https://invisible-island.net/ncurses/NEWS.html#t20081102">2008/11/02</a>).</p>
+
+  <p><a href="https://invisible-island.net/ncurses/NEWS.html#t20120225">Early in 2012</a>
+  (after ncurses 5.9) I added a configure option to make it simpler
+  and less error-prone if OpenBSD updates <code>ncurses</code> in
+  the future. It is called
+  “<code>--enable-string-hacks</code>,” and uses macros
+  to switch between <code>strcpy</code> and <code>strlcpy</code>,
+  etc. I did this to demonstrate that the checks either way were
+  equivalent.</p>
+
+  <p>The <code>strlcpy</code> and related programs are only as good
+  as the buffer-size which is passed to them. In real programs, the
+  buffer-size may be passed through several levels of function
+  calls. Or it may simply be assumed, via a symbol definition.
+  Those cases would require a static analyzer to verify the
+  calls.</p>
+
+  <p>On the other hand, there are cases that a simple checker
+  should be able to do. Consider this test program:</p>
+
+  <blockquote>
+    <!--{{atr2html-->
+
+    <p style="font-family: monospace; font-size: 10pt;">
+    <span class="preproc">#include</span>&nbsp;<span class="literal">&lt;stdio.h&gt;</span><br>
+    <span class="preproc">#include</span>&nbsp;<span class="literal">&lt;string.h&gt;</span><br>
+    <span class="preproc">#include</span>&nbsp;<span class="literal">&lt;bsd/string.h&gt;</span><br>
+    &nbsp;<br>
+    <span class="type">static</span>&nbsp;<span class="type">int</span><br>
+    copyit(<span class="type">char</span>&nbsp;*argument)<br>
+    {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>&nbsp;buffer[<span class="number">20</span>];<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;strlcpy(buffer,&nbsp;argument,&nbsp;<span class="type">sizeof</span>(buffer)&nbsp;+&nbsp;<span class="number">40</span>);<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span>&nbsp;(<span class="type">int</span>)&nbsp;strlen(buffer);<br>
+    }<br>
+    &nbsp;<br>
+    <span class="type">int</span><br>
+    main(<span class="type">int</span>&nbsp;argc,&nbsp;<span class="type">char</span>&nbsp;*argv[])<br>
+    {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">int</span>&nbsp;n;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span>&nbsp;(n&nbsp;=&nbsp;<span class="number">0</span>;&nbsp;n&nbsp;&lt;&nbsp;argc;&nbsp;++n)&nbsp;{<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;copyit(argv[n]);<br>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span>&nbsp;<span class="number">0</span>;<br>
+    }<br>
+    <!--atr2html}}--></p>
+  </blockquote>
+
+  <p>Running the program and passing an argument longer than 20
+  characters will make it overflow the buffer. I checked for
+  warnings about this program using these tools in October
+  2016.</p>
+
+  <ul>
+    <li>Coverity</li>
+
+    <li>clang 3.6.2</li>
+
+    <li>cppcheck 1.75</li>
+  </ul>
+
+  <p>Coverity of course is remote; the other two were on my
+  Debian/testing system.</p>
+
+  <p>Oddly enough, none of them reported a problem with the test
+  program. Just to check, I ran it with <code>valgrind</code>, and
+  got the expected result: a core dump and a nice log:</p>
+
+  <blockquote>
+    <pre class="code-block">==26109== Jump to the invalid address stated on the next line
+==26109==    at 0x787878: ???
+==26109==    by 0x3FFFF: ???
+==26109==    by 0xFFF0005E7: ???
+==26109==    by 0x20592F147: ???
+==26109==    by 0x40061F: ??? (in /tmp/foo)
+==26109==  Address 0x787878 is not stack'd, malloc'd or (recently) free'd
+==26109== 
+==26109== 
+==26109== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==26109==  Bad permissions for mapped region at address 0x787878
+==26109==    at 0x787878: ???
+==26109==    by 0x3FFFF: ???
+==26109==    by 0xFFF0005E7: ???
+==26109==    by 0x20592F147: ???
+==26109==    by 0x40061F: ??? (in tmp/foo)
+</pre>
+  </blockquote>
+
+  <p>That is, the behavior of these functions is reasonably
+  well-known, but none of the tool developers thought it important
+  to verify the parameters for them.</p>
+
+
+</body><span class="gr__tooltip"><span class="gr__tooltip-content"></span><i class="gr__tooltip-logo"></i><span class="gr__triangle"></span></span></html>

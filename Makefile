@@ -1,4 +1,4 @@
-all: one two three four
+all: one two three four five
 
 make1: one.c
 	gcc -o one one.c -I.
@@ -11,3 +11,6 @@ make3: three.c
 
 make4: four.c
 	gcc -o four four.c -I.
+
+make5: five.c
+	gcc -o five five.c -I.
